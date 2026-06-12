@@ -2,10 +2,11 @@
 
 import { Share2, Shuffle, Trophy, Volleyball } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { TeamPanel } from "@/components/draw/team-panel";
+import { usePeladaDraft } from "@/components/peladas/pelada-draft-context";
 import { StarRow } from "@/components/players/star-row";
 import { AppButton } from "@/components/shared/app-button";
 import { BottomSheet } from "@/components/shared/bottom-sheet";
@@ -13,12 +14,10 @@ import { PrivBadge } from "@/components/shared/priv-badge";
 import { TopBar } from "@/components/shared/top-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getApiErrorMessage } from "@/lib/api/axios";
-import { useDrawTeams } from "@/lib/hooks/use-draw";
 import { usePelada } from "@/lib/hooks/use-peladas";
-import { loadDrawConfig, useDrawConfig } from "@/lib/utils/draw-config";
 import { POSITION_META } from "@/lib/utils/positions";
 import { teamColor } from "@/lib/utils/teams";
-import type { DrawTeam } from "@/types/api";
+import type { DrawResult, DrawTeam } from "@/types/api";
 
 function teamsAsText(peladaName: string, teams: DrawTeam[]): string {
   const lines = [`⚽ ${peladaName} — times sorteados:`, ""];
@@ -172,36 +171,26 @@ export default function DrawPage() {
   const { peladaId } = useParams<{ peladaId: string }>();
   const router = useRouter();
   const { data: pelada } = usePelada(peladaId);
-  const drawMutation = useDrawTeams(peladaId);
+  const { draw, drawKey, runDraw, teamsQuantity, withPosition } =
+    usePeladaDraft();
 
-  const config = useDrawConfig(peladaId);
-  const [drawKey, setDrawKey] = useState(0);
   const [shareOpen, setShareOpen] = useState(false);
-  const started = useRef(false);
 
-  const { mutate } = drawMutation;
-
-  // dispara o sorteio com a configuração feita na tela da pelada
+  // o sorteio é disparado na tela da pelada; quem chega aqui sem ter
+  // sorteado (deep link / refresh) volta para configurar os convocados
+  const orphan = draw.isIdle && !draw.data;
   useEffect(() => {
-    if (started.current) return;
-    started.current = true;
-    const stored = loadDrawConfig(peladaId);
-    if (!stored) {
-      router.replace(`/peladas/${peladaId}`);
-      return;
-    }
-    mutate(stored, { onSuccess: () => setDrawKey((key) => key + 1) });
-  }, [peladaId, router, mutate]);
+    if (orphan) router.replace(`/peladas/${peladaId}`);
+  }, [orphan, peladaId, router]);
 
-  function redraw() {
-    if (!config || drawMutation.isPending) return;
-    drawMutation.mutate(config, {
-      onSuccess: () => setDrawKey((key) => key + 1),
-    });
-  }
-
-  const teams = drawMutation.data?.data.draw.teams;
+  // aceita tanto data.draw.teams (swagger) quanto data.teams
+  const payload = draw.data?.data as
+    | { draw?: DrawResult; teams?: DrawTeam[] }
+    | undefined;
+  const teams = payload?.draw?.teams ?? payload?.teams;
   const peladaName = pelada?.name ?? "Pelada";
+
+  if (orphan) return null;
 
   return (
     <div className="flex flex-1 flex-col">
@@ -231,36 +220,34 @@ export default function DrawPage() {
           <h1 className="font-display text-[30px] leading-[0.95] font-bold uppercase text-foreground">
             Times Sorteados
           </h1>
-          {config && (
-            <div className="mt-[11px] flex gap-[7px]">
-              <PrivBadge tone="draw">
-                <Trophy className="size-[11px]" /> {config.teamsQuantity} times
-              </PrivBadge>
-              <PrivBadge tone={config.withPosition ? "manage" : "muted"}>
-                {config.withPosition
-                  ? "Equilíbrio por posição"
-                  : "Equilíbrio por estrelas"}
-              </PrivBadge>
-            </div>
-          )}
+          <div className="mt-[11px] flex gap-[7px]">
+            <PrivBadge tone="draw">
+              <Trophy className="size-[11px]" /> {teamsQuantity} times
+            </PrivBadge>
+            <PrivBadge tone={withPosition ? "manage" : "muted"}>
+              {withPosition
+                ? "Equilíbrio por posição"
+                : "Equilíbrio por estrelas"}
+            </PrivBadge>
+          </div>
         </div>
 
-        {drawMutation.isPending && (
+        {draw.isPending && (
           <div className="flex flex-col gap-3">
             <Skeleton className="h-48 rounded-[18px]" />
             <Skeleton className="h-48 rounded-[18px]" />
           </div>
         )}
 
-        {drawMutation.isError && !drawMutation.isPending && (
+        {draw.isError && !draw.isPending && (
           <div className="rounded-[18px] border border-line-soft bg-card p-6 text-center">
             <p className="font-sans text-sm text-muted-foreground">
-              {getApiErrorMessage(drawMutation.error)}
+              {getApiErrorMessage(draw.error)}
             </p>
             <AppButton
               variant="secondary"
               size="sm"
-              onClick={redraw}
+              onClick={runDraw}
               className="mx-auto mt-4"
             >
               Tentar novamente
@@ -268,7 +255,7 @@ export default function DrawPage() {
           </div>
         )}
 
-        {teams && !drawMutation.isPending && (
+        {teams && !draw.isPending && (
           <div key={drawKey} className="flex flex-col gap-[13px]">
             {teams.map((team, index) => (
               <TeamPanel
@@ -298,8 +285,8 @@ export default function DrawPage() {
         </button>
         <button
           type="button"
-          onClick={redraw}
-          disabled={drawMutation.isPending || !config}
+          onClick={runDraw}
+          disabled={draw.isPending}
           className="flex h-[54px] flex-1 items-center justify-center gap-[9px] rounded-2xl transition active:scale-[0.98] disabled:opacity-60"
           style={{
             background:
@@ -310,7 +297,7 @@ export default function DrawPage() {
         >
           <Shuffle className="size-[21px]" strokeWidth={2.2} />
           <span className="font-display text-[17px] font-bold uppercase tracking-[0.02em] whitespace-nowrap">
-            {drawMutation.isPending ? "Sorteando..." : "Refazer Sorteio"}
+            {draw.isPending ? "Sorteando..." : "Refazer Sorteio"}
           </span>
         </button>
       </div>

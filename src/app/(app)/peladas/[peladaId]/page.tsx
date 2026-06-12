@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { usePeladaDraft } from "@/components/peladas/pelada-draft-context";
 import { PeladaNameSheet } from "@/components/peladas/pelada-name-sheet";
 import { PlayerCard } from "@/components/players/player-card";
 import { PlayerSheet } from "@/components/players/player-sheet";
@@ -24,7 +25,6 @@ import {
   usePlayers,
   useUpdatePlayer,
 } from "@/lib/hooks/use-players";
-import { saveDrawConfig } from "@/lib/utils/draw-config";
 import { hasPrivilege, isOwner } from "@/lib/utils/privileges";
 import { MAX_TEAMS } from "@/lib/utils/teams";
 import type { Player, PlayerPayload } from "@/types/api";
@@ -50,9 +50,15 @@ export default function PeladaPage() {
   const updatePlayerMutation = useUpdatePlayer(peladaId);
   const deletePlayerMutation = useDeletePlayer(peladaId);
 
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [teamsQuantity, setTeamsQuantity] = useState(2);
-  const [withPosition, setWithPosition] = useState(true);
+  const {
+    selectedIds,
+    setSelectedIds,
+    teamsQuantity,
+    setTeamsQuantity,
+    withPosition,
+    setWithPosition,
+    runDraw,
+  } = usePeladaDraft();
 
   const [editNameOpen, setEditNameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -145,11 +151,7 @@ export default function PeladaPage() {
       toast.error("Selecione ao menos um jogador por time.");
       return;
     }
-    saveDrawConfig(peladaId, {
-      playersIds: selectedIds,
-      teamsQuantity,
-      withPosition,
-    });
+    runDraw();
     router.push(`/peladas/${peladaId}/draw`);
   }
 
