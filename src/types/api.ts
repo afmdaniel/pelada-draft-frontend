@@ -49,10 +49,6 @@ export interface DrawTeam {
   players: DrawTeamPlayer[];
 }
 
-export interface DrawResult {
-  teams: DrawTeam[];
-}
-
 export interface PermissionUser {
   username: string;
   email: string;

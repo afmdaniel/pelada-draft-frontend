@@ -1,13 +1,10 @@
-
 {
   "openapi": "3.0.0",
   "paths": {
     "/auth/register": {
       "post": {
         "operationId": "AuthController_register",
-        "parameters": [
-          
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -42,9 +39,7 @@
     "/auth/login": {
       "post": {
         "operationId": "AuthController_login",
-        "parameters": [
-          
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -76,9 +71,7 @@
     "/auth/refresh": {
       "post": {
         "operationId": "AuthController_refresh",
-        "parameters": [
-          
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Token atualizado com sucesso.",
@@ -93,9 +86,7 @@
         },
         "security": [
           {
-            "refresh_token": [
-              
-            ]
+            "refresh_token": []
           }
         ],
         "summary": "Atualiza o token de acesso.",
@@ -107,9 +98,7 @@
     "/auth/change-password": {
       "patch": {
         "operationId": "AuthController_updatePassword",
-        "parameters": [
-          
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -134,9 +123,7 @@
         },
         "security": [
           {
-            "access_token": [
-              
-            ]
+            "access_token": []
           }
         ],
         "summary": "Atualiza senha do usuário.",
@@ -148,9 +135,7 @@
     "/auth/logout": {
       "post": {
         "operationId": "AuthController_logout",
-        "parameters": [
-          
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Sessão encerrada com sucesso.",
@@ -165,9 +150,7 @@
         },
         "security": [
           {
-            "refresh_token": [
-              
-            ]
+            "refresh_token": []
           }
         ],
         "summary": "Encerra sessão do usuário.",
@@ -179,9 +162,7 @@
     "/auth/me": {
       "get": {
         "operationId": "AuthController_me",
-        "parameters": [
-          
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Dados do usuário retornados com sucesso.",
@@ -196,9 +177,7 @@
         },
         "security": [
           {
-            "access_token": [
-              
-            ]
+            "access_token": []
           }
         ],
         "summary": "Retorna os dados do usuário logado",
@@ -210,9 +189,7 @@
     "/peladas": {
       "post": {
         "operationId": "PeladaController_create",
-        "parameters": [
-          
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -237,9 +214,7 @@
         },
         "security": [
           {
-            "access_token": [
-              
-            ]
+            "access_token": []
           }
         ],
         "summary": "Cria uma nova pelada",
@@ -249,9 +224,7 @@
       },
       "get": {
         "operationId": "PeladaController_list",
-        "parameters": [
-          
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Lista de peladas retornada com sucesso.",
@@ -266,9 +239,7 @@
         },
         "security": [
           {
-            "access_token": [
-              
-            ]
+            "access_token": []
           }
         ],
         "summary": "Lista todas as peladas do usuário logado",
@@ -307,9 +278,7 @@
         },
         "security": [
           {
-            "access_token": [
-              
-            ]
+            "access_token": []
           }
         ],
         "summary": "Obtém detalhes de uma pelada pelo ID",
@@ -353,9 +322,7 @@
         },
         "security": [
           {
-            "access_token": [
-              
-            ]
+            "access_token": []
           }
         ],
         "summary": "Atualiza o nome da pelada",
@@ -389,9 +356,7 @@
         },
         "security": [
           {
-            "access_token": [
-              
-            ]
+            "access_token": []
           }
         ],
         "summary": "Deleta uma pelada",
@@ -437,9 +402,7 @@
         },
         "security": [
           {
-            "access_token": [
-              
-            ]
+            "access_token": []
           }
         ],
         "summary": "Adiciona um jogador à pelada",
@@ -473,9 +436,7 @@
         },
         "security": [
           {
-            "access_token": [
-              
-            ]
+            "access_token": []
           }
         ],
         "summary": "Lista os jogadores da pelada",
@@ -529,9 +490,7 @@
         },
         "security": [
           {
-            "access_token": [
-              
-            ]
+            "access_token": []
           }
         ],
         "summary": "Atualiza os dados de um jogador",
@@ -573,9 +532,7 @@
         },
         "security": [
           {
-            "access_token": [
-              
-            ]
+            "access_token": []
           }
         ],
         "summary": "Remove um jogador da pelada",
@@ -621,9 +578,7 @@
         },
         "security": [
           {
-            "access_token": [
-              
-            ]
+            "access_token": []
           }
         ],
         "summary": "Realiza o sorteio de times para a pelada",
@@ -659,9 +614,7 @@
         },
         "security": [
           {
-            "access_token": [
-              
-            ]
+            "access_token": []
           }
         ],
         "summary": "Lista usuários com permissão para a pelada.",
@@ -705,9 +658,7 @@
         },
         "security": [
           {
-            "access_token": [
-              
-            ]
+            "access_token": []
           }
         ],
         "summary": "Gerencia as permissões de um usuário em uma pelada",
@@ -721,9 +672,7 @@
     "title": "API de Peladas",
     "description": "Documentação completa da API de gerenciamento de peladas, jogadores e sorteio equilibrado de times.",
     "version": "1.0",
-    "contact": {
-      
-    }
+    "contact": {}
   },
   "tags": [
     {
@@ -747,9 +696,7 @@
       "description": "Gerenciamento de permissões de usuários dentro da pelada"
     }
   ],
-  "servers": [
-    
-  ],
+  "servers": [],
   "components": {
     "securitySchemes": {
       "cookie": {
@@ -1527,25 +1474,14 @@
           "players"
         ]
       },
-      "DrawDataDto": {
-        "type": "object",
-        "properties": {
-          "teams": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TeamDto"
-            }
-          }
-        },
-        "required": [
-          "teams"
-        ]
-      },
       "DrawPayloadDto": {
         "type": "object",
         "properties": {
           "draw": {
-            "$ref": "#/components/schemas/DrawDataDto"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamDto"
+            }
           }
         },
         "required": [

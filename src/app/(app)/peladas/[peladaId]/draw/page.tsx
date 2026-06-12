@@ -17,7 +17,7 @@ import { getApiErrorMessage } from "@/lib/api/axios";
 import { usePelada } from "@/lib/hooks/use-peladas";
 import { POSITION_META } from "@/lib/utils/positions";
 import { teamColor } from "@/lib/utils/teams";
-import type { DrawResult, DrawTeam } from "@/types/api";
+import type { DrawTeam } from "@/types/api";
 
 function teamsAsText(peladaName: string, teams: DrawTeam[]): string {
   const lines = [`⚽ ${peladaName} — times sorteados:`, ""];
@@ -183,11 +183,7 @@ export default function DrawPage() {
     if (orphan) router.replace(`/peladas/${peladaId}`);
   }, [orphan, peladaId, router]);
 
-  // aceita tanto data.draw.teams (swagger) quanto data.teams
-  const payload = draw.data?.data as
-    | { draw?: DrawResult; teams?: DrawTeam[] }
-    | undefined;
-  const teams = payload?.draw?.teams ?? payload?.teams;
+  const teams = draw.data?.data.draw;
   const peladaName = pelada?.name ?? "Pelada";
 
   if (orphan) return null;
