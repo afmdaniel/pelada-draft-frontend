@@ -2,6 +2,7 @@ import { api } from "@/lib/api/axios";
 import type {
   ApiResponse,
   ChangePasswordPayload,
+  CurrentUser,
   LoginPayload,
   RegisterPayload,
 } from "@/types/api";
@@ -18,6 +19,11 @@ export async function login(payload: LoginPayload) {
 
 export async function refresh() {
   const { data } = await api.post<ApiResponse>("/auth/refresh");
+  return data;
+}
+
+export async function getMe() {
+  const { data } = await api.get<ApiResponse<{ user: CurrentUser }>>("/auth/me");
   return data;
 }
 

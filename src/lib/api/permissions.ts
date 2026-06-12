@@ -2,7 +2,7 @@ import { api } from "@/lib/api/axios";
 import type { ApiResponse, PermissionPayload, PermissionUser } from "@/types/api";
 
 export async function getPermissions(peladaId: string) {
-  const { data } = await api.get<ApiResponse<PermissionUser[]>>(
+  const { data } = await api.get<ApiResponse<{ users: PermissionUser[] }>>(
     `/peladas/${peladaId}/permission`
   );
   return data;

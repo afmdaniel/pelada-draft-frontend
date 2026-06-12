@@ -2,14 +2,14 @@ import { api } from "@/lib/api/axios";
 import type { ApiResponse, Player, PlayerPayload } from "@/types/api";
 
 export async function getPlayers(peladaId: string) {
-  const { data } = await api.get<ApiResponse<Player[]>>(
+  const { data } = await api.get<ApiResponse<{ players: Player[] }>>(
     `/peladas/${peladaId}/players`
   );
   return data;
 }
 
 export async function createPlayer(peladaId: string, payload: PlayerPayload) {
-  const { data } = await api.post<ApiResponse<Player>>(
+  const { data } = await api.post<ApiResponse<{ player: Player }>>(
     `/peladas/${peladaId}/players`,
     payload
   );
@@ -21,7 +21,7 @@ export async function updatePlayer(
   playerId: string,
   payload: PlayerPayload
 ) {
-  const { data } = await api.put<ApiResponse<Player>>(
+  const { data } = await api.put<ApiResponse<{ player: Player }>>(
     `/peladas/${peladaId}/players/${playerId}`,
     payload
   );

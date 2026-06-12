@@ -10,8 +10,22 @@ export type Privilege = "MANAGE_PLAYERS" | "DRAW_TEAMS";
 
 export type PermissionAction = "ASSIGN" | "REVOKE";
 
+export interface CurrentUser {
+  id: string;
+  email: string;
+  username: string;
+  role: string;
+}
+
 export interface Player {
   id: string;
+  name: string;
+  stars: number;
+  position: Position;
+}
+
+/** Jogador resumido (sem id) — usado no detalhe da pelada e nos times sorteados. */
+export interface PlayerSummary {
   name: string;
   stars: number;
   position: Position;
@@ -25,14 +39,10 @@ export interface PeladaSummary {
 }
 
 export interface PeladaDetails extends PeladaSummary {
-  players: Player[];
+  players: PlayerSummary[];
 }
 
-export interface DrawTeamPlayer {
-  name: string;
-  stars: number;
-  position: Position;
-}
+export type DrawTeamPlayer = PlayerSummary;
 
 export interface DrawTeam {
   totalStars: number;

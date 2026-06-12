@@ -1,268 +1,429 @@
 "use client";
 
-import {
-  ArrowLeft,
-  Crown,
-  Pencil,
-  Plus,
-  Shield,
-  Shuffle,
-  Trash2,
-  Users,
-} from "lucide-react";
-import Link from "next/link";
+import { Check, Lock, Pencil, Plus, Shield, Shuffle, Trash2, User } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
-import { PeladaFormDialog } from "@/components/peladas/pelada-form-dialog";
-import { PlayerFormDialog } from "@/components/players/player-form-dialog";
-import { PositionBadge } from "@/components/players/position-badge";
-import { StarRating } from "@/components/players/star-rating";
-import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { PeladaNameSheet } from "@/components/peladas/pelada-name-sheet";
+import { PlayerCard } from "@/components/players/player-card";
+import { PlayerSheet } from "@/components/players/player-sheet";
+import { ActionTile } from "@/components/shared/action-tile";
+import { AppButton } from "@/components/shared/app-button";
+import { ConfirmSheet } from "@/components/shared/confirm-sheet";
+import { PrivBadges } from "@/components/shared/priv-badge";
+import { Stepper } from "@/components/shared/stepper";
+import { TopBar } from "@/components/shared/top-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getApiErrorMessage } from "@/lib/api/axios";
-import { useCurrentIdentifier } from "@/lib/hooks/use-current-user";
-import { useDeletePelada, usePelada } from "@/lib/hooks/use-peladas";
-import { useDeletePlayer } from "@/lib/hooks/use-players";
+import { useMe } from "@/lib/hooks/use-auth";
+import { useDeletePelada, usePelada, useUpdatePelada } from "@/lib/hooks/use-peladas";
+import {
+  useCreatePlayer,
+  useDeletePlayer,
+  usePlayers,
+  useUpdatePlayer,
+} from "@/lib/hooks/use-players";
+import { saveDrawConfig } from "@/lib/utils/draw-config";
 import { hasPrivilege, isOwner } from "@/lib/utils/privileges";
-import type { Player } from "@/types/api";
+import { MAX_TEAMS } from "@/lib/utils/teams";
+import type { Player, PlayerPayload } from "@/types/api";
 
-export default function PeladaDetailsPage() {
+export default function PeladaPage() {
   const { peladaId } = useParams<{ peladaId: string }>();
   const router = useRouter();
-  const identifier = useCurrentIdentifier();
+  const { data: me } = useMe();
 
-  const { data: pelada, isLoading, isError, error, refetch } = usePelada(peladaId);
-  const deletePeladaMutation = useDeletePelada();
+  const {
+    data: pelada,
+    isLoading: peladaLoading,
+    isError,
+    error,
+    refetch,
+  } = usePelada(peladaId);
+  const { data: playersData, isLoading: playersLoading } = usePlayers(peladaId);
+  const isLoading = peladaLoading || playersLoading;
+
+  const updateMutation = useUpdatePelada(peladaId);
+  const deleteMutation = useDeletePelada();
+  const createPlayerMutation = useCreatePlayer(peladaId);
+  const updatePlayerMutation = useUpdatePlayer(peladaId);
   const deletePlayerMutation = useDeletePlayer(peladaId);
 
-  const [editOpen, setEditOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const selectionInitialized = useRef(false);
+  const [teamsQuantity, setTeamsQuantity] = useState(2);
+  const [withPosition, setWithPosition] = useState(true);
+
+  const [editNameOpen, setEditNameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [playerFormOpen, setPlayerFormOpen] = useState(false);
-  const [playerToEdit, setPlayerToEdit] = useState<Player | undefined>();
-  const [playerToDelete, setPlayerToDelete] = useState<Player | undefined>();
+  const [playerSheet, setPlayerSheet] = useState<{
+    open: boolean;
+    player: Player | null;
+  }>({ open: false, player: null });
+
+  // por padrão, todos os jogadores começam convocados (como no protótipo)
+  useEffect(() => {
+    if (playersData && !selectionInitialized.current) {
+      selectionInitialized.current = true;
+      setSelectedIds(playersData.map((player) => player.id));
+    }
+  }, [playersData]);
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-6">
-        <Skeleton className="h-9 w-64" />
-        <Skeleton className="h-72 rounded-xl" />
+      <div className="flex flex-col gap-3 p-4">
+        <Skeleton className="h-10 w-2/3 rounded-xl" />
+        <Skeleton className="h-40 rounded-[18px]" />
+        <Skeleton className="h-20 rounded-[18px]" />
+        <Skeleton className="h-20 rounded-[18px]" />
       </div>
     );
   }
 
   if (isError || !pelada) {
     return (
-      <Card className="items-center py-10 text-center">
-        <CardHeader>
-          <CardTitle>Não foi possível carregar a pelada</CardTitle>
-          <CardDescription>{getApiErrorMessage(error)}</CardDescription>
-        </CardHeader>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => refetch()}>
+      <div className="flex flex-1 flex-col">
+        <TopBar title="Pelada" onBack={() => router.push("/peladas")} />
+        <div className="mx-4 rounded-[18px] border border-line-soft bg-card p-6 text-center">
+          <p className="font-sans text-sm text-muted-foreground">
+            {getApiErrorMessage(error)}
+          </p>
+          <AppButton
+            variant="secondary"
+            size="sm"
+            onClick={() => refetch()}
+            className="mx-auto mt-4"
+          >
             Tentar novamente
-          </Button>
-          <Button render={<Link href="/peladas" />}>Voltar para a lista</Button>
+          </AppButton>
         </div>
-      </Card>
+      </div>
     );
   }
 
-  const owner = isOwner(pelada, identifier);
-  const canManagePlayers = hasPrivilege(pelada, "MANAGE_PLAYERS", identifier);
-  const canDraw = hasPrivilege(pelada, "DRAW_TEAMS", identifier);
-  const players = pelada.players ?? [];
+  const owner = isOwner(pelada, me);
+  const canManage = hasPrivilege(pelada, "MANAGE_PLAYERS", me);
+  const canDraw = hasPrivilege(pelada, "DRAW_TEAMS", me);
+  const players = playersData ?? [];
+  const count = selectedIds.length;
+  const allSelected = players.length > 0 && count === players.length;
 
-  function openCreatePlayer() {
-    setPlayerToEdit(undefined);
-    setPlayerFormOpen(true);
+  const lockMsg = () => toast.error("Apenas o dono da pelada pode fazer isso.");
+
+  function togglePlayer(playerId: string) {
+    setSelectedIds((current) =>
+      current.includes(playerId)
+        ? current.filter((id) => id !== playerId)
+        : [...current, playerId]
+    );
   }
 
-  function openEditPlayer(player: Player) {
-    setPlayerToEdit(player);
-    setPlayerFormOpen(true);
+  function savePlayer(payload: PlayerPayload) {
+    if (playerSheet.player) {
+      updatePlayerMutation.mutate(
+        { playerId: playerSheet.player.id, payload },
+        { onSuccess: () => setPlayerSheet({ open: false, player: null }) }
+      );
+    } else {
+      createPlayerMutation.mutate(payload, {
+        onSuccess: () => setPlayerSheet({ open: false, player: null }),
+      });
+    }
   }
+
+  function removePlayer(player: Player) {
+    deletePlayerMutation.mutate(player.id, {
+      onSuccess: () => {
+        setSelectedIds((current) => current.filter((id) => id !== player.id));
+        setPlayerSheet({ open: false, player: null });
+      },
+    });
+  }
+
+  function handleDraw() {
+    if (!canDraw) {
+      toast.error("Você não tem permissão para sortear times.");
+      return;
+    }
+    if (count < 2) {
+      toast.error("Selecione ao menos 2 jogadores.");
+      return;
+    }
+    if (count < teamsQuantity) {
+      toast.error("Selecione ao menos um jogador por time.");
+      return;
+    }
+    saveDrawConfig(peladaId, {
+      playersIds: selectedIds,
+      teamsQuantity,
+      withPosition,
+    });
+    router.push(`/peladas/${peladaId}/draw`);
+  }
+
+  const playerMutationPending =
+    createPlayerMutation.isPending ||
+    updatePlayerMutation.isPending ||
+    deletePlayerMutation.isPending;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="-ml-2 mb-2 text-muted-foreground"
-          render={<Link href="/peladas" />}
+    <div className="flex flex-1 flex-col">
+      <TopBar title={pelada.name} onBack={() => router.push("/peladas")} />
+
+      <div className="flex-1 px-4">
+        {/* cartão de detalhes e permissões */}
+        <div
+          className="rounded-[18px] border border-line-soft p-4 shadow-card"
+          style={{
+            background: "linear-gradient(160deg, var(--card-hi), var(--card))",
+          }}
         >
-          <ArrowLeft />
-          Minhas peladas
-        </Button>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="font-heading text-2xl font-semibold">{pelada.name}</h1>
-            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              {owner && <Crown className="size-3.5 text-amber-500" />}
-              {owner ? "Você é o dono" : `Dono: ${pelada.ownerUsername}`}
-            </p>
+          <div className="flex items-center gap-1.5">
+            <User className="size-[13px] text-faint" />
+            <span className="font-sans text-[12.5px] font-semibold text-muted-foreground">
+              Organizada por @{pelada.ownerUsername}
+              {owner && " · você"}
+            </span>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {canDraw && (
-              <Button render={<Link href={`/peladas/${pelada.id}/draw`} />}>
-                <Shuffle />
-                Sortear times
-              </Button>
+          <div className="mt-3.5 flex gap-7">
+            {(
+              [
+                ["Jogadores", players.length],
+                ["Convocados", count],
+              ] as const
+            ).map(([label, value]) => (
+              <div key={label}>
+                <div className="font-display text-2xl leading-none font-bold text-foreground">
+                  {value}
+                </div>
+                <div className="mt-[3px] font-sans text-[9.5px] font-semibold uppercase tracking-[0.1em] text-faint">
+                  {label}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-[15px] border-t border-line-soft pt-3.5">
+            <div className="mb-2 font-sans text-[9.5px] font-bold uppercase tracking-[0.12em] text-faint">
+              Suas permissões
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              <PrivBadges isOwner={owner} privileges={pelada.privileges} />
+            </div>
+          </div>
+        </div>
+
+        {/* ações do dono */}
+        <div className="mt-3 flex gap-[9px]">
+          <ActionTile
+            icon={Pencil}
+            label="Editar nome"
+            locked={!owner}
+            onClick={owner ? () => setEditNameOpen(true) : lockMsg}
+          />
+          <ActionTile
+            icon={Shield}
+            label="Permissões"
+            locked={!owner}
+            onClick={
+              owner
+                ? () => router.push(`/peladas/${peladaId}/permissions`)
+                : lockMsg
+            }
+          />
+          <ActionTile
+            icon={Trash2}
+            label="Excluir"
+            danger
+            locked={!owner}
+            onClick={owner ? () => setDeleteOpen(true) : lockMsg}
+          />
+        </div>
+
+        {/* convocados */}
+        <div className="mt-[22px] mb-3 flex items-center justify-between">
+          <div>
+            <h2 className="font-display text-[17px] leading-none font-semibold uppercase text-foreground">
+              Convocados
+            </h2>
+            <span className="font-sans text-xs text-faint">
+              {count} de {players.length} selecionados
+            </span>
+          </div>
+          <div className="flex gap-[7px]">
+            {players.length > 0 && (
+              <button
+                type="button"
+                onClick={() =>
+                  setSelectedIds(
+                    allSelected ? [] : players.map((player) => player.id)
+                  )
+                }
+                className="rounded-[10px] bg-accent-soft px-[11px] py-[7px] font-sans text-xs font-bold text-primary transition active:scale-95"
+              >
+                {allSelected ? "Limpar" : "Todos"}
+              </button>
             )}
-            {owner && (
-              <>
-                <Button
-                  variant="outline"
-                  render={<Link href={`/peladas/${pelada.id}/permissions`} />}
-                >
-                  <Shield />
-                  Permissões
-                </Button>
-                <Button variant="outline" onClick={() => setEditOpen(true)}>
-                  <Pencil />
-                  Editar
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => setDeleteOpen(true)}
-                >
-                  <Trash2 />
-                  Excluir
-                </Button>
-              </>
+            {canManage && (
+              <button
+                type="button"
+                onClick={() => setPlayerSheet({ open: true, player: null })}
+                aria-label="Adicionar jogador"
+                className="grid size-[34px] place-items-center rounded-[10px] border border-line-soft bg-card-hi text-foreground transition active:scale-90"
+              >
+                <Plus className="size-[18px]" strokeWidth={2.3} />
+              </button>
             )}
           </div>
         </div>
+
+        <div className="flex flex-col gap-2.5 pb-2">
+          {players.length === 0 && (
+            <p className="py-8 text-center font-sans text-[13.5px] text-muted-foreground">
+              Nenhum jogador ainda.{" "}
+              {canManage
+                ? "Adicione o primeiro no botão acima."
+                : "Peça ao dono para cadastrar os jogadores."}
+            </p>
+          )}
+          {players.map((player) => (
+            <PlayerCard
+              key={player.id}
+              player={player}
+              selectable
+              selected={selectedIds.includes(player.id)}
+              dim={count > 0}
+              onToggle={() => togglePlayer(player.id)}
+              onEdit={
+                canManage
+                  ? () => setPlayerSheet({ open: true, player })
+                  : undefined
+              }
+            />
+          ))}
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="size-4" />
-                Jogadores
-                <span className="text-sm font-normal text-muted-foreground">
-                  ({players.length})
-                </span>
-              </CardTitle>
-              <CardDescription>
-                Jogadores cadastrados nesta pelada.
-              </CardDescription>
-            </div>
-            {canManagePlayers && (
-              <Button size="sm" onClick={openCreatePlayer}>
-                <Plus />
-                Adicionar jogador
-              </Button>
-            )}
+      {/* barra fixa de sorteio */}
+      <div className="sticky bottom-0 z-40 border-t border-line-soft bg-[color-mix(in_oklch,var(--surface)_90%,transparent)] px-4 pt-[11px] pb-3.5 backdrop-blur-md">
+        <div className="mb-[11px] flex items-center justify-between">
+          <div className="flex items-center gap-[9px]">
+            <span className="font-sans text-[10.5px] font-bold uppercase tracking-[0.08em] text-faint">
+              Times
+            </span>
+            <Stepper
+              value={teamsQuantity}
+              min={2}
+              max={MAX_TEAMS}
+              onChange={setTeamsQuantity}
+            />
           </div>
-        </CardHeader>
-        <CardContent>
-          {players.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              Nenhum jogador cadastrado ainda.
-              {canManagePlayers && " Adicione o primeiro jogador para começar."}
-            </p>
+          <button
+            type="button"
+            onClick={() => setWithPosition((value) => !value)}
+            className={`flex items-center gap-[7px] rounded-[10px] px-2.5 py-1.5 transition active:scale-95 ${
+              withPosition
+                ? "border border-transparent bg-accent-soft"
+                : "border border-line-soft bg-card-hi"
+            }`}
+          >
+            <span
+              className="grid size-4 place-items-center rounded-[5px]"
+              style={{
+                background: withPosition ? "var(--accent-color)" : "transparent",
+                border: `1.5px solid ${withPosition ? "var(--accent-color)" : "var(--line)"}`,
+                color: "var(--accent-ink)",
+              }}
+            >
+              {withPosition && <Check className="size-[11px]" strokeWidth={3} />}
+            </span>
+            <span
+              className={`font-sans text-xs font-bold ${
+                withPosition ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              Equilibrar posição
+            </span>
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={handleDraw}
+          className="relative flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl transition active:scale-[0.98]"
+          style={
+            canDraw
+              ? {
+                  background:
+                    "linear-gradient(120deg, var(--accent-color), var(--accent-press))",
+                  color: "var(--accent-ink)",
+                  boxShadow: "0 14px 30px -12px var(--accent-color)",
+                }
+              : {
+                  background: "var(--card-hi)",
+                  color: "var(--faint)",
+                  border: "1px solid var(--line)",
+                }
+          }
+        >
+          {canDraw ? (
+            <Shuffle className="size-[22px]" strokeWidth={2.2} />
           ) : (
-            <div className="flex flex-col">
-              {players.map((player, index) => (
-                <div key={player.id}>
-                  {index > 0 && <Separator />}
-                  <div className="flex items-center justify-between gap-3 py-2.5">
-                    <div className="flex min-w-0 items-center gap-3">
-                      <span className="truncate text-sm font-medium">
-                        {player.name}
-                      </span>
-                      <PositionBadge position={player.position} />
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <StarRating stars={player.stars} className="mr-2" />
-                      {canManagePlayers && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            aria-label={`Editar ${player.name}`}
-                            onClick={() => openEditPlayer(player)}
-                          >
-                            <Pencil />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            className="text-destructive hover:text-destructive"
-                            aria-label={`Remover ${player.name}`}
-                            onClick={() => setPlayerToDelete(player)}
-                          >
-                            <Trash2 />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <Lock className="size-[22px]" strokeWidth={2.2} />
           )}
-        </CardContent>
-      </Card>
+          <span className="font-display text-[17px] font-bold uppercase tracking-[0.02em] whitespace-nowrap">
+            {canDraw ? "Realizar Sorteio" : "Sem permissão"}
+          </span>
+          {canDraw && (
+            <span className="absolute top-1/2 right-3 min-w-[26px] -translate-y-1/2 rounded-full bg-black/20 px-2 py-[3px] text-center font-sans text-[13px] font-bold">
+              {count}
+            </span>
+          )}
+        </button>
+      </div>
 
-      <PeladaFormDialog
-        open={editOpen}
-        onOpenChange={setEditOpen}
-        pelada={{ id: pelada.id, name: pelada.name }}
+      {/* sheets */}
+      <PeladaNameSheet
+        open={editNameOpen}
+        onOpenChange={setEditNameOpen}
+        initialName={pelada.name}
+        loading={updateMutation.isPending}
+        onSubmit={(name) =>
+          updateMutation.mutate(
+            { name },
+            { onSuccess: () => setEditNameOpen(false) }
+          )
+        }
       />
-
-      <PlayerFormDialog
-        peladaId={pelada.id}
-        open={playerFormOpen}
-        onOpenChange={setPlayerFormOpen}
-        player={playerToEdit}
-      />
-
-      <ConfirmDialog
+      <ConfirmSheet
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         title="Excluir pelada"
-        description={`Tem certeza que deseja excluir "${pelada.name}"? Essa ação não pode ser desfeita.`}
-        confirmLabel="Excluir"
-        loading={deletePeladaMutation.isPending}
+        loading={deleteMutation.isPending}
+        description={
+          <>
+            Tem certeza que deseja excluir{" "}
+            <strong className="font-display uppercase text-foreground">
+              {pelada.name}
+            </strong>
+            ? Todos os jogadores e dados serão perdidos. Esta ação não pode ser
+            desfeita.
+          </>
+        }
         onConfirm={() =>
-          deletePeladaMutation.mutate(pelada.id, {
-            onSuccess: () => {
-              setDeleteOpen(false);
-              router.push("/peladas");
-            },
+          deleteMutation.mutate(peladaId, {
+            onSuccess: () => router.push("/peladas"),
           })
         }
       />
-
-      <ConfirmDialog
-        open={!!playerToDelete}
-        onOpenChange={(open) => {
-          if (!open) setPlayerToDelete(undefined);
-        }}
-        title="Remover jogador"
-        description={`Tem certeza que deseja remover "${playerToDelete?.name}" da pelada?`}
-        confirmLabel="Remover"
-        loading={deletePlayerMutation.isPending}
-        onConfirm={() => {
-          if (!playerToDelete) return;
-          deletePlayerMutation.mutate(playerToDelete.id, {
-            onSuccess: () => setPlayerToDelete(undefined),
-          });
-        }}
+      <PlayerSheet
+        open={playerSheet.open}
+        onOpenChange={(open) =>
+          setPlayerSheet((current) => ({ ...current, open }))
+        }
+        player={playerSheet.player}
+        loading={playerMutationPending}
+        onSave={savePlayer}
+        onDelete={removePlayer}
       />
     </div>
   );

@@ -1,5 +1,18 @@
 import type { Position, Privilege } from "@/types/api";
 
+export interface PositionMeta {
+  label: string;
+  short: string;
+  accent: string;
+}
+
+export const POSITION_META: Record<Position, PositionMeta> = {
+  ZAGA: { label: "Zaga", short: "ZAG", accent: "oklch(0.70 0.13 233)" },
+  MEIO: { label: "Meio", short: "MEI", accent: "oklch(0.78 0.12 178)" },
+  ATAQUE: { label: "Ataque", short: "ATA", accent: "oklch(0.74 0.16 48)" },
+  GERAL: { label: "Geral", short: "GER", accent: "oklch(0.70 0.02 250)" },
+};
+
 export const POSITION_LABELS: Record<Position, string> = {
   ZAGA: "Zaga",
   MEIO: "Meio",
@@ -7,12 +20,7 @@ export const POSITION_LABELS: Record<Position, string> = {
   GERAL: "Geral",
 };
 
-export const POSITION_BADGE_CLASSES: Record<Position, string> = {
-  ZAGA: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
-  MEIO: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
-  ATAQUE: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
-  GERAL: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
-};
+export const POSITION_ORDER: Position[] = ["ATAQUE", "MEIO", "ZAGA", "GERAL"];
 
 export const PRIVILEGE_LABELS: Record<Privilege, string> = {
   MANAGE_PLAYERS: "Gerenciar jogadores",

@@ -15,7 +15,7 @@ export function usePermissions(peladaId: string) {
   return useQuery({
     queryKey: permissionKeys.list(peladaId),
     queryFn: () => getPermissions(peladaId),
-    select: (response) => response.data,
+    select: (response) => response.data.users,
     retry: false,
   });
 }

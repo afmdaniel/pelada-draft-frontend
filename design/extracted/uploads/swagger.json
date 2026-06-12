@@ -1,0 +1,1487 @@
+// 20260609124145
+// http://localhost:3000/api-docs-json
+
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "parameters": [
+          
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterUserBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuário criado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "E-mail ou Username já estão em uso."
+          }
+        },
+        "summary": "Registra um novo usuário no sistema",
+        "tags": [
+          "Autenticação"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [
+          
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthenticateBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login realizado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Login do usuário no sistema",
+        "tags": [
+          "Autenticação"
+        ]
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "operationId": "AuthController_refresh",
+        "parameters": [
+          
+        ],
+        "responses": {
+          "200": {
+            "description": "Token atualizado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "refresh_token": [
+              
+            ]
+          }
+        ],
+        "summary": "Atualiza o token de acesso.",
+        "tags": [
+          "Autenticação"
+        ]
+      }
+    },
+    "/auth/change-password": {
+      "patch": {
+        "operationId": "AuthController_updatePassword",
+        "parameters": [
+          
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Senha alterada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangePasswordResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access_token": [
+              
+            ]
+          }
+        ],
+        "summary": "Atualiza senha do usuário.",
+        "tags": [
+          "Autenticação"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout",
+        "parameters": [
+          
+        ],
+        "responses": {
+          "200": {
+            "description": "Sessão encerrada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogoutResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "refresh_token": [
+              
+            ]
+          }
+        ],
+        "summary": "Encerra sessão do usuário.",
+        "tags": [
+          "Autenticação"
+        ]
+      }
+    },
+    "/peladas": {
+      "post": {
+        "operationId": "PeladaController_create",
+        "parameters": [
+          
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePeladaBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pelada criada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePeladaResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access_token": [
+              
+            ]
+          }
+        ],
+        "summary": "Cria uma nova pelada",
+        "tags": [
+          "Peladas"
+        ]
+      },
+      "get": {
+        "operationId": "PeladaController_list",
+        "parameters": [
+          
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de peladas retornada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListPeladasResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access_token": [
+              
+            ]
+          }
+        ],
+        "summary": "Lista todas as peladas do usuário logado",
+        "tags": [
+          "Peladas"
+        ]
+      }
+    },
+    "/peladas/{peladaId}": {
+      "get": {
+        "operationId": "PeladaController_getById",
+        "parameters": [
+          {
+            "name": "peladaId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhes da pelada retornados com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetPeladaByIdResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pelada não encontrada."
+          }
+        },
+        "security": [
+          {
+            "access_token": [
+              
+            ]
+          }
+        ],
+        "summary": "Obtém detalhes de uma pelada pelo ID",
+        "tags": [
+          "Peladas"
+        ]
+      },
+      "put": {
+        "operationId": "PeladaController_update",
+        "parameters": [
+          {
+            "name": "peladaId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePeladaBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pelada atualizada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdatePeladaResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access_token": [
+              
+            ]
+          }
+        ],
+        "summary": "Atualiza o nome da pelada",
+        "tags": [
+          "Peladas"
+        ]
+      },
+      "delete": {
+        "operationId": "PeladaController_delete",
+        "parameters": [
+          {
+            "name": "peladaId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pelada deletada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access_token": [
+              
+            ]
+          }
+        ],
+        "summary": "Deleta uma pelada",
+        "tags": [
+          "Peladas"
+        ]
+      }
+    },
+    "/peladas/{peladaId}/players": {
+      "post": {
+        "operationId": "PeladaPlayerController_create",
+        "parameters": [
+          {
+            "name": "peladaId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePlayerBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Jogador adicionado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePlayerResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access_token": [
+              
+            ]
+          }
+        ],
+        "summary": "Adiciona um jogador à pelada",
+        "tags": [
+          "Jogadores"
+        ]
+      },
+      "get": {
+        "operationId": "PeladaPlayerController_list",
+        "parameters": [
+          {
+            "name": "peladaId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de jogadores retornada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListPlayersResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access_token": [
+              
+            ]
+          }
+        ],
+        "summary": "Lista os jogadores da pelada",
+        "tags": [
+          "Jogadores"
+        ]
+      }
+    },
+    "/peladas/{peladaId}/players/{playerId}": {
+      "put": {
+        "operationId": "PeladaPlayerController_update",
+        "parameters": [
+          {
+            "name": "peladaId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "playerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePlayerBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Jogador atualizado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdatePlayerResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access_token": [
+              
+            ]
+          }
+        ],
+        "summary": "Atualiza os dados de um jogador",
+        "tags": [
+          "Jogadores"
+        ]
+      },
+      "delete": {
+        "operationId": "PeladaPlayerController_delete",
+        "parameters": [
+          {
+            "name": "peladaId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "playerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Jogador removido com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access_token": [
+              
+            ]
+          }
+        ],
+        "summary": "Remove um jogador da pelada",
+        "tags": [
+          "Jogadores"
+        ]
+      }
+    },
+    "/peladas/{peladaId}/draw": {
+      "post": {
+        "operationId": "PeladaDrawController_draw",
+        "parameters": [
+          {
+            "name": "peladaId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DrawTeamsBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sorteio realizado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DrawTeamsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access_token": [
+              
+            ]
+          }
+        ],
+        "summary": "Realiza o sorteio de times para a pelada",
+        "tags": [
+          "Sorteio"
+        ]
+      }
+    },
+    "/peladas/{peladaId}/permission": {
+      "post": {
+        "operationId": "PeladaPermissionController_manage",
+        "parameters": [
+          {
+            "name": "peladaId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagePermissionBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Permissão atualizada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access_token": [
+              
+            ]
+          }
+        ],
+        "summary": "Gerencia as permissões de um usuário em uma pelada",
+        "tags": [
+          "Permissões"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "API de Peladas",
+    "description": "Documentação completa da API de gerenciamento de peladas, jogadores e sorteio equilibrado de times.",
+    "version": "1.0",
+    "contact": {
+      
+    }
+  },
+  "tags": [
+    {
+      "name": "Autenticação",
+      "description": "Rotas de login, cadastro e sessão"
+    },
+    {
+      "name": "Peladas",
+      "description": "Gerenciamento dos grupos de pelada"
+    },
+    {
+      "name": "Jogadores",
+      "description": "Gerenciamento dos jogadores dentro das peladas"
+    },
+    {
+      "name": "Sorteio",
+      "description": "Gerenciamento de sorteio de times dentro da pelada"
+    },
+    {
+      "name": "Permissões",
+      "description": "Gerenciamento de permissões de usuários dentro da pelada"
+    }
+  ],
+  "servers": [
+    
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "refresh_token"
+      }
+    },
+    "schemas": {
+      "RegisterUserBody": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "E-mail do usuário.",
+            "example": "usuario@email.com"
+          },
+          "username": {
+            "type": "string",
+            "description": "Username do usuário.",
+            "example": "usuario123",
+            "minLength": 3,
+            "maxLength": 20
+          },
+          "password": {
+            "type": "string",
+            "description": "Senha com no mínimo 6 caracteres.",
+            "example": "senhaForte123",
+            "minLength": 6
+          },
+          "passwordConfirmation": {
+            "type": "string",
+            "description": "Confirmação da senha. Deve ser idêntica ao campo password.",
+            "example": "senhaForte123"
+          }
+        },
+        "required": [
+          "email",
+          "username",
+          "password",
+          "passwordConfirmation"
+        ]
+      },
+      "RegisterResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Usuário registrado com sucesso."
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "AuthenticateBody": {
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "description": "E-mail válido ou username do usuário.",
+            "example": "usuario123"
+          },
+          "password": {
+            "type": "string",
+            "description": "Senha do usuário.",
+            "example": "senhaForte123"
+          }
+        },
+        "required": [
+          "identifier",
+          "password"
+        ]
+      },
+      "LoginResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Login realizado com sucesso."
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "RefreshResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Token atualizado com sucesso."
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "ChangePasswordBody": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "description": "Senha atual do usuário.",
+            "example": "senhaForte123"
+          },
+          "newPassword": {
+            "type": "string",
+            "description": "Senha com no mínimo 6 caracteres",
+            "example": "senhaForte456",
+            "minLength": 6
+          },
+          "newPasswordConfirmation": {
+            "type": "string",
+            "description": "Confirmação da senha. Deve ser idêntica ao campo password.",
+            "example": "senhaForte456"
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword",
+          "newPasswordConfirmation"
+        ]
+      },
+      "ChangePasswordResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Senha alterada com sucesso."
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "LogoutResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Sessão encerrada com sucesso."
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "CreatePeladaBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nome da pelada entre 3 e 30 caracteres, sem caracteres especiais.",
+            "example": "Pelada Teste 123",
+            "minLength": 3,
+            "maxLength": 30
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "PeladaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "d3f6630f-b1e1-450f-a496-d249f0f90e5f"
+          },
+          "name": {
+            "type": "string",
+            "example": "Pelada de Sábado"
+          },
+          "ownerId": {
+            "type": "string",
+            "example": "c1b4432a-d2e3-4f9e-b123-e456f0f70a1c"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "ownerId"
+        ]
+      },
+      "PeladaDataDto": {
+        "type": "object",
+        "properties": {
+          "pelada": {
+            "$ref": "#/components/schemas/PeladaDto"
+          }
+        },
+        "required": [
+          "pelada"
+        ]
+      },
+      "CreatePeladaResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Pelada criada com sucesso."
+          },
+          "data": {
+            "$ref": "#/components/schemas/PeladaDataDto"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "data"
+        ]
+      },
+      "PeladaWithPermissionsDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "d3f6630f-b1e1-450f-a496-d249f0f90e5f"
+          },
+          "name": {
+            "type": "string",
+            "example": "Pelada de Sábado"
+          },
+          "ownerUsername": {
+            "type": "string",
+            "example": "usuario123"
+          },
+          "privileges": {
+            "type": "array",
+            "example": [
+              "MANAGE_PLAYERS",
+              "DRAW_TEAMS"
+            ],
+            "items": {
+              "type": "string",
+              "enum": [
+                "MANAGE_PLAYERS",
+                "DRAW_TEAMS"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "ownerUsername",
+          "privileges"
+        ]
+      },
+      "ListPeladasDataDto": {
+        "type": "object",
+        "properties": {
+          "peladas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PeladaWithPermissionsDto"
+            }
+          }
+        },
+        "required": [
+          "peladas"
+        ]
+      },
+      "ListPeladasResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Lista de peladas retornada com sucesso."
+          },
+          "data": {
+            "$ref": "#/components/schemas/ListPeladasDataDto"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "data"
+        ]
+      },
+      "PlayerSummaryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Messi"
+          },
+          "stars": {
+            "type": "number",
+            "example": 10
+          },
+          "position": {
+            "type": "string",
+            "enum": [
+              "ZAGA",
+              "MEIO",
+              "ATAQUE",
+              "GERAL"
+            ],
+            "example": "MEIO"
+          }
+        },
+        "required": [
+          "name",
+          "stars",
+          "position"
+        ]
+      },
+      "PeladaWithDetailsDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "d3f6630f-b1e1-450f-a496-d249f0f90e5f"
+          },
+          "name": {
+            "type": "string",
+            "example": "Pelada de Sábado"
+          },
+          "ownerUsername": {
+            "type": "string",
+            "example": "usuario123"
+          },
+          "privileges": {
+            "type": "array",
+            "example": [
+              "MANAGE_PLAYERS",
+              "DRAW_TEAMS"
+            ],
+            "items": {
+              "type": "string",
+              "enum": [
+                "MANAGE_PLAYERS",
+                "DRAW_TEAMS"
+              ]
+            }
+          },
+          "players": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlayerSummaryDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "ownerUsername",
+          "privileges",
+          "players"
+        ]
+      },
+      "PeladaDetailsDataDto": {
+        "type": "object",
+        "properties": {
+          "pelada": {
+            "$ref": "#/components/schemas/PeladaWithDetailsDto"
+          }
+        },
+        "required": [
+          "pelada"
+        ]
+      },
+      "GetPeladaByIdResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Detalhes da pelada retornados com sucesso."
+          },
+          "data": {
+            "$ref": "#/components/schemas/PeladaDetailsDataDto"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "data"
+        ]
+      },
+      "UpdatePeladaBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nome da pelada entre 3 e 30 caracteres, sem caracteres especiais.",
+            "example": "Pelada Teste 456",
+            "minLength": 3,
+            "maxLength": 30
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdatePeladaResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Pelada atualizada com sucesso."
+          },
+          "data": {
+            "$ref": "#/components/schemas/PeladaDataDto"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "data"
+        ]
+      },
+      "BaseResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Operação realizada com sucesso."
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "CreatePlayerBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nome do jogador entre 2 e 40 caracteres, sem caracteres especiais e números.",
+            "example": "Messi",
+            "minLength": 3,
+            "maxLength": 40
+          },
+          "stars": {
+            "type": "number",
+            "description": "Estrelas do jogador entre 0 e 10.",
+            "example": 10,
+            "minimum": 0,
+            "maximum": 10
+          },
+          "position": {
+            "type": "string",
+            "description": "Posição do jogador.",
+            "enum": [
+              "ZAGA",
+              "MEIO",
+              "ATAQUE",
+              "GERAL"
+            ],
+            "example": "MEIO"
+          }
+        },
+        "required": [
+          "name",
+          "stars",
+          "position"
+        ]
+      },
+      "PlayerDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "d3f6630f-b1e1-450f-a496-d249f0f90e5f"
+          },
+          "name": {
+            "type": "string",
+            "example": "Messi"
+          },
+          "stars": {
+            "type": "number",
+            "example": 10
+          },
+          "position": {
+            "type": "string",
+            "enum": [
+              "ZAGA",
+              "MEIO",
+              "ATAQUE",
+              "GERAL"
+            ],
+            "example": "MEIO"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "stars",
+          "position"
+        ]
+      },
+      "PlayerDataDto": {
+        "type": "object",
+        "properties": {
+          "player": {
+            "$ref": "#/components/schemas/PlayerDto"
+          }
+        },
+        "required": [
+          "player"
+        ]
+      },
+      "CreatePlayerResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Jogador adicionado com sucesso."
+          },
+          "data": {
+            "$ref": "#/components/schemas/PlayerDataDto"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "data"
+        ]
+      },
+      "ListPlayersDataDto": {
+        "type": "object",
+        "properties": {
+          "players": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlayerDto"
+            }
+          }
+        },
+        "required": [
+          "players"
+        ]
+      },
+      "ListPlayersResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Lista de jogadores retornada com sucesso."
+          },
+          "data": {
+            "$ref": "#/components/schemas/ListPlayersDataDto"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "data"
+        ]
+      },
+      "UpdatePlayerBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nome do jogador entre 2 e 40 caracteres, sem caracteres especiais e números.",
+            "example": "Neymar Jr",
+            "minLength": 2,
+            "maxLength": 40
+          },
+          "stars": {
+            "type": "number",
+            "description": "Estrelas do jogador entre 0 e 10.",
+            "example": 8,
+            "minimum": 0,
+            "maximum": 10
+          },
+          "position": {
+            "type": "string",
+            "description": "Posição do jogador.",
+            "enum": [
+              "ZAGA",
+              "MEIO",
+              "ATAQUE",
+              "GERAL"
+            ],
+            "example": "ATAQUE"
+          }
+        },
+        "required": [
+          "name",
+          "stars",
+          "position"
+        ]
+      },
+      "UpdatePlayerResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Jogador atualizado com sucesso."
+          },
+          "data": {
+            "$ref": "#/components/schemas/PlayerDataDto"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "data"
+        ]
+      },
+      "DrawTeamsBody": {
+        "type": "object",
+        "properties": {
+          "playersIds": {
+            "description": "Id dos jogadores a serem sorteados.",
+            "example": [
+              "player1",
+              "player2",
+              "player3",
+              "player4"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "teamsQuantity": {
+            "type": "number",
+            "description": "Quantidade de times a serem sorteados.",
+            "example": 4,
+            "minimum": 2
+          },
+          "withPosition": {
+            "type": "boolean",
+            "description": "Deve considerar a posição dos jogadores?",
+            "examples": [
+              true,
+              false
+            ]
+          }
+        },
+        "required": [
+          "playersIds",
+          "teamsQuantity",
+          "withPosition"
+        ]
+      },
+      "TeamDto": {
+        "type": "object",
+        "properties": {
+          "totalStars": {
+            "type": "number",
+            "example": 25
+          },
+          "players": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlayerSummaryDto"
+            }
+          }
+        },
+        "required": [
+          "totalStars",
+          "players"
+        ]
+      },
+      "DrawDataDto": {
+        "type": "object",
+        "properties": {
+          "teams": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamDto"
+            }
+          }
+        },
+        "required": [
+          "teams"
+        ]
+      },
+      "DrawPayloadDto": {
+        "type": "object",
+        "properties": {
+          "draw": {
+            "$ref": "#/components/schemas/DrawDataDto"
+          }
+        },
+        "required": [
+          "draw"
+        ]
+      },
+      "DrawTeamsResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Sorteio realizado com sucesso."
+          },
+          "data": {
+            "$ref": "#/components/schemas/DrawPayloadDto"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "data"
+        ]
+      },
+      "ManagePermissionBody": {
+        "type": "object",
+        "properties": {
+          "userIdentifier": {
+            "type": "string",
+            "description": "E-mail válido ou username do usuário.",
+            "example": "usuario@email.com"
+          },
+          "privilege": {
+            "type": "string",
+            "description": "Permissão a ser concedida ou revogada.",
+            "enum": [
+              "MANAGE_PLAYERS",
+              "DRAW_TEAMS"
+            ],
+            "example": "DRAW_TEAMS"
+          },
+          "action": {
+            "type": "string",
+            "description": "Ação a ser realizada. Pode ser \"ASSIGN\" ou \"REVOKE\".",
+            "enum": [
+              "ASSIGN",
+              "REVOKE"
+            ],
+            "example": "ASSING"
+          }
+        },
+        "required": [
+          "userIdentifier",
+          "privilege",
+          "action"
+        ]
+      }
+    }
+  }
+}

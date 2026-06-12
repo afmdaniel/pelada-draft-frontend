@@ -22,7 +22,7 @@ export function usePeladas() {
   return useQuery({
     queryKey: peladaKeys.all,
     queryFn: getPeladas,
-    select: (response) => response.data,
+    select: (response) => response.data.peladas,
   });
 }
 
@@ -30,7 +30,7 @@ export function usePelada(peladaId: string) {
   return useQuery({
     queryKey: peladaKeys.detail(peladaId),
     queryFn: () => getPelada(peladaId),
-    select: (response) => response.data,
+    select: (response) => response.data.pelada,
   });
 }
 

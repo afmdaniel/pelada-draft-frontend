@@ -1,21 +1,35 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { login, logout, register } from "@/lib/api/auth";
+import { getMe, login, logout, register } from "@/lib/api/auth";
 import { getApiErrorMessage } from "@/lib/api/axios";
-import { clearIdentifier, saveIdentifier } from "@/lib/utils/current-user";
 import type { LoginPayload, RegisterPayload } from "@/types/api";
+
+export const authKeys = {
+  me: ["auth", "me"] as const,
+};
+
+export function useMe() {
+  return useQuery({
+    queryKey: authKeys.me,
+    queryFn: getMe,
+    select: (response) => response.data.user,
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
+}
 
 export function useLogin(redirectTo?: string) {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (payload: LoginPayload) => login(payload),
-    onSuccess: (response, payload) => {
-      saveIdentifier(payload.identifier);
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: authKeys.me });
       toast.success(response.message);
       router.push(redirectTo ?? "/peladas");
       router.refresh();
@@ -43,11 +57,12 @@ export function useRegister() {
 
 export function useLogout() {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: logout,
     onSettled: () => {
-      clearIdentifier();
+      queryClient.clear();
       router.push("/login");
       router.refresh();
     },

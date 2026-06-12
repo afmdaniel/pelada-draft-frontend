@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pelada Draft — Protótipo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          display: ['Oswald', 'sans-serif'],
+          sans: ['Manrope', 'system-ui', 'sans-serif'],
+        },
+      },
+    },
+  };
+</script>
+<style>
+  :root {
+    /* dark (default) — modern sport tech, cool charcoal + electric blue */
+    --bg:       oklch(0.17 0.012 248);
+    --surface:  oklch(0.21 0.014 248);
+    --card:     oklch(0.245 0.016 250);
+    --card-hi:  oklch(0.30 0.018 250);
+    --line:     oklch(0.34 0.018 250);
+    --line-soft:oklch(0.28 0.016 250);
+    --text:     oklch(0.97 0.006 248);
+    --muted:    oklch(0.74 0.012 250);
+    --faint:    oklch(0.56 0.014 252);
+    --accent:   oklch(0.74 0.15 233);
+    --accent-press: oklch(0.66 0.15 233);
+    --accent-ink:   oklch(0.18 0.04 250);
+    --accent-soft:  oklch(0.74 0.15 233 / 0.14);
+    --danger:   oklch(0.66 0.19 25);
+    --danger-soft: oklch(0.66 0.19 25 / 0.15);
+    --gold:     oklch(0.82 0.15 90);
+    --shadow:   0 18px 40px -16px rgba(0,0,0,0.6);
+  }
+  .theme-light {
+    --bg:       oklch(0.96 0.006 248);
+    --surface:  oklch(0.99 0.004 248);
+    --card:     oklch(1 0 0);
+    --card-hi:  oklch(0.975 0.006 248);
+    --line:     oklch(0.89 0.008 250);
+    --line-soft:oklch(0.93 0.006 250);
+    --text:     oklch(0.24 0.018 250);
+    --muted:    oklch(0.48 0.016 250);
+    --faint:    oklch(0.62 0.014 252);
+    --accent:   oklch(0.58 0.16 245);
+    --accent-press: oklch(0.50 0.16 245);
+    --accent-ink:   oklch(0.99 0.01 250);
+    --accent-soft:  oklch(0.58 0.16 245 / 0.12);
+    --danger:   oklch(0.56 0.21 25);
+    --danger-soft: oklch(0.56 0.21 25 / 0.10);
+    --gold:     oklch(0.72 0.15 78);
+    --shadow:   0 14px 32px -16px rgba(20,30,50,0.28);
+  }
+  * { -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: #07090d; }
+  body {
+    font-family: 'Manrope', system-ui, sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh;
+    overflow: hidden;
+    background:
+      radial-gradient(1100px 720px at 50% -10%, #16202e 0%, rgba(22,32,46,0) 60%),
+      radial-gradient(900px 600px at 50% 120%, #101622 0%, rgba(16,22,34,0) 55%),
+      #07090d;
+  }
+  .font-display { font-family: 'Oswald', sans-serif; }
+  /* scrollbars hidden inside phone */
+  .noscroll::-webkit-scrollbar { width: 0; height: 0; }
+  .noscroll { scrollbar-width: none; }
+  /* entrance helpers */
+  @keyframes popIn { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes dealIn { from { opacity: 0; transform: translateY(14px) scale(.94) rotate(-2deg); } to { opacity: 1; transform: none; } }
+  @keyframes slideIn { from { transform: translateY(12px); } to { transform: none; } }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(-16px) scale(.96); } to { opacity: 1; transform: none; } }
+  @keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
+  @keyframes scrim { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes shimmer { 0% { background-position: -120% 0; } 100% { background-position: 220% 0; } }
+  @keyframes pulseRing { 0%, 100% { transform: scale(1); opacity: 0.6; } 50% { transform: scale(1.06); opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .001ms !important; }
+  }
+</style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="data.jsx"></script>
+  <script type="text/babel" src="components.jsx"></script>
+  <script type="text/babel" src="screens-auth.jsx"></script>
+  <script type="text/babel" src="screens-peladas.jsx"></script>
+  <script type="text/babel" src="screens-pelada.jsx"></script>
+  <script type="text/babel" src="screens-draw.jsx"></script>
+  <script type="text/babel" src="main.jsx"></script>
+</body>
+</html>

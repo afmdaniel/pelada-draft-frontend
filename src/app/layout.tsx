@@ -1,17 +1,19 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Manrope, Oswald } from "next/font/google";
 import "./globals.css";
 
 import { Providers } from "@/components/providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const oswald = Oswald({
+  variable: "--font-oswald",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -19,8 +21,14 @@ export const metadata: Metadata = {
     default: "Pelada Draft",
     template: "%s | Pelada Draft",
   },
-  description: "Gerencie sua pelada e sorteie times equilibrados.",
+  description: "Times equilibrados em segundos.",
 };
+
+export const viewport: Viewport = {
+  themeColor: "#0e1218",
+};
+
+const themeScript = `try{if(localStorage.getItem("pelada-draft:theme")==="light")document.documentElement.classList.add("theme-light")}catch(e){}`;
 
 export default function RootLayout({
   children,
@@ -30,9 +38,11 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${oswald.variable} ${manrope.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <Providers>{children}</Providers>
       </body>
     </html>

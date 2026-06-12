@@ -5,8 +5,8 @@ export const POSITIONS = ["ZAGA", "MEIO", "ATAQUE", "GERAL"] as const;
 export const playerSchema = z.object({
   name: z
     .string()
-    .min(1, "Informe o nome do jogador")
-    .max(60, "O nome deve ter no máximo 60 caracteres"),
+    .min(2, "O nome deve ter ao menos 2 caracteres")
+    .max(40, "O nome deve ter no máximo 40 caracteres"),
   stars: z.coerce
     .number<number>("Informe um número")
     .int("Use um número inteiro")
