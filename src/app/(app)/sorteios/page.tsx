@@ -10,7 +10,7 @@ export default function SorteiosPage() {
   const router = useRouter();
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex flex-1 flex-col pt-3">
       <ScreenHeader subtitle="Histórico" title="Sorteios" />
       <div className="flex flex-1 flex-col items-center justify-center px-7 pb-10 text-center">
         <div className="relative mb-[26px] size-[116px]">

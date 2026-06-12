@@ -27,7 +27,7 @@ export default function PerfilPage() {
   const display = me?.username ?? "jogador";
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex flex-1 flex-col pt-3">
       <ScreenHeader subtitle="Conta" title="Perfil" />
       <div className="px-4 pb-6">
         {/* cartão do usuário */}

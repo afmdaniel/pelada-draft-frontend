@@ -99,7 +99,7 @@ export default function PeladasPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex flex-1 flex-col pt-3">
       <ScreenHeader
         subtitle={me ? `Olá, @${me.username}` : "Bem-vindo"}
         title="Suas Peladas"
