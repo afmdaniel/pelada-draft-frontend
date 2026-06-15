@@ -17,9 +17,9 @@ import {
 
 function Logo() {
   return (
-    <div className="mb-[26px] flex items-center gap-3 animate-fade-up">
+    <div className="mb-6.5 flex items-center gap-3 animate-fade-up">
       <div
-        className="grid size-14 place-items-center rounded-[18px] shadow-[0_14px_30px_-10px_var(--accent-color)]"
+        className="grid size-14 shrink-0 place-items-center rounded-2xl shadow-[0_0.875rem_1.875rem_-0.625rem_var(--accent-color)]"
         style={{
           background:
             "linear-gradient(150deg, var(--accent-color), var(--accent-press))",
@@ -35,7 +35,7 @@ function Logo() {
         <div className="font-display text-3xl leading-[0.95] font-bold uppercase tracking-[0.01em] text-foreground">
           Pelada<span className="text-primary">Draft</span>
         </div>
-        <div className="mt-[3px] font-sans text-[12.5px] font-semibold text-faint">
+        <div className="mt-1 font-sans text-[0.78rem] font-semibold text-faint">
           Times equilibrados em segundos
         </div>
       </div>
@@ -49,7 +49,7 @@ function Segmented({ mode }: { mode: "login" | "register" }) {
     { key: "register", label: "Criar conta", href: "/register" },
   ] as const;
   return (
-    <div className="mb-[22px] flex gap-1 rounded-[14px] border border-line-soft bg-card p-1 animate-fade-up">
+    <div className="mb-5.5 flex gap-1 rounded-[0.875rem] border border-line-soft bg-card p-1 animate-fade-up">
       {options.map((option) => {
         const on = mode === option.key;
         return (
@@ -57,7 +57,7 @@ function Segmented({ mode }: { mode: "login" | "register" }) {
             key={option.key}
             href={option.href}
             replace
-            className={`flex h-10 flex-1 items-center justify-center rounded-[10px] font-sans text-sm font-bold transition ${
+            className={`flex min-h-11 flex-1 items-center justify-center rounded-[0.625rem] font-sans text-sm font-bold transition ${
               on
                 ? "bg-primary text-primary-foreground"
                 : "bg-transparent text-muted-foreground"
@@ -79,14 +79,14 @@ function Shell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="noscroll flex flex-1 flex-col overflow-y-auto">
-      <div className="flex flex-1 flex-col justify-center px-[26px] py-8">
+    <div className="noscroll flex flex-1 flex-col overflow-y-auto md:flex-none">
+      <div className="flex flex-1 flex-col justify-center px-6.5 py-8 md:rounded-3xl md:border md:border-line-soft md:bg-surface md:px-10 md:py-10 md:shadow-card">
         <Logo />
         <Segmented mode={mode} />
         <div className="animate-fade-up">{children}</div>
       </div>
-      <div className="px-[26px] pt-3.5 pb-[26px] text-center">
-        <span className="text-[11.5px] text-faint">
+      <div className="px-6.5 pt-3.5 pb-6.5 text-center">
+        <span className="text-[0.72rem] text-faint">
           Ao continuar você concorda com os termos da pelada ⚽
         </span>
       </div>
@@ -144,7 +144,7 @@ export function LoginScreen({ redirectTo }: { redirectTo?: string }) {
         <Link
           href="/register"
           replace
-          className="font-sans text-[13.5px] font-semibold text-muted-foreground"
+          className="inline-block py-2 font-sans text-[0.84rem] font-semibold text-muted-foreground"
         >
           Não tem conta?{" "}
           <span className="text-primary">Criar nova conta</span>
