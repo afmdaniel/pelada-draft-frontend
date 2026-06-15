@@ -34,7 +34,7 @@ export function PeladaDraftProvider({
   children: React.ReactNode;
 }) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [teamsQuantity, setTeamsQuantity] = useState(2);
+  const [teamsQuantity, setTeamsQuantity] = useState(4);
   const [withPosition, setWithPosition] = useState(true);
   const [drawKey, setDrawKey] = useState(0);
   const draw = useDrawTeams(peladaId);
