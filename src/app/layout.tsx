@@ -22,6 +22,14 @@ export const metadata: Metadata = {
     template: "%s | Pelada Draft",
   },
   description: "Times equilibrados em segundos.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
+  manifest: "/site.webmanifest",
 };
 
 export const viewport: Viewport = {

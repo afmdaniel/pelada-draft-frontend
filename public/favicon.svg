@@ -1,0 +1,20 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1abdf9"/>
+      <stop offset="1" stop-color="#0d8fc8"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded square background -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- White ball circle -->
+  <circle cx="256" cy="256" r="170" fill="white"/>
+  <!-- Center pentagon patch (dark navy) -->
+  <path d="M256 178 L318 220 L295 288 L217 288 L194 220 Z" fill="#0d1a2e"/>
+  <!-- 5 seam lines from pentagon vertices to ball edge -->
+  <line x1="256" y1="86" x2="256" y2="178" stroke="#0d1a2e" stroke-width="16" stroke-linecap="round"/>
+  <line x1="378" y1="160" x2="318" y2="220" stroke="#0d1a2e" stroke-width="16" stroke-linecap="round"/>
+  <line x1="338" y1="404" x2="295" y2="288" stroke="#0d1a2e" stroke-width="16" stroke-linecap="round"/>
+  <line x1="174" y1="404" x2="217" y2="288" stroke="#0d1a2e" stroke-width="16" stroke-linecap="round"/>
+  <line x1="134" y1="160" x2="194" y2="220" stroke="#0d1a2e" stroke-width="16" stroke-linecap="round"/>
+</svg>
