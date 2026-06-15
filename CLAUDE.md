@@ -121,3 +121,26 @@ response types, and validation rules.
 - `network_mode: host` does not work correctly on WSL2 for port forwarding to the Windows browser
 
 **No pending items.**
+
+### Session — 2026-06-15 (features, favicon, CI/CD)
+
+**Implemented:**
+
+- **Auth cross-domain fix**: `proxy.ts` verificava `access_token`/`refresh_token` (cookies de `api.pelada-draft.com.br`, invisíveis para `app.pelada-draft.com.br`). Solução: rota Next.js `POST/DELETE /api/auth/session` seta cookie `has_session` no domínio do front; `proxy.ts` agora checa `has_session`. Matcher do proxy atualizado para excluir rotas `/api/`.
+- **CI/CD com GitHub Actions**: `.github/workflows/deploy.yml` — push no `main` → SSH na VPS → `git pull` + `docker compose build` + `docker compose up -d`. Segredos: `VPS_HOST`, `VPS_PORT`, `VPS_USER`, `VPS_SSH_KEY`, `VPS_PATH`.
+- **Password toggle**: `PasswordTextField` em `field.tsx` com ícone Lock + Eye/EyeOff. Aplicado em login e cadastro.
+- **Toasts dismissíveis**: `closeButton` adicionado ao `<Toaster>` em `sonner.tsx`.
+- **Role ADMIN**: `isOwner` e `hasPrivilege` em `privileges.ts` retornam `true` para `user.role === "ADMIN"`, dando acesso total a todas as peladas.
+- **Termos de Serviço (LGPD)**: Modal `terms-modal.tsx` com 8 seções. Link no rodapé das telas de auth e no menu de Perfil. Checkbox obrigatório no cadastro (client-side); `acceptedTerms` removido antes de enviar à API. E-mail de contato placeholder: `contato@pelada-draft.com.br` — precisa ser atualizado.
+- **Favicon**: SVG de bola de futebol estilizada (fundo gradiente azul elétrico, bola branca, patch central escuro). Gerado com `sharp` + `png-to-ico` via `scripts/generate-favicons.mjs`. Arquivos: `favicon.ico` (multi-size), `favicon.svg`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, `site.webmanifest`. `favicon.ico` em `src/app/` (convenção Next.js). Dockerfile atualizado para `COPY public/`.
+- **docker-compose**: variável `NEXT_PUBLIC_API_URL` lida do `.env` via `${NEXT_PUBLIC_API_URL:-http://localhost:3000}`.
+- **Regra de push**: git commit livre, git push NUNCA — push sempre feito manualmente pelo usuário.
+- **Pequenos fixes**: gap entre stepper de times e checkbox de posição (`gap-4`); padrão de times alterado de 2 para 4; botão "Salvar como imagem" → "Exportar como imagem"; README com link de produção e repositório do back end.
+
+**Key decisions:**
+
+- Cookie cross-domain: solução front-only (sem alterar o backend) usando cookie de sessão setado pelo próprio Next.js após login bem-sucedido.
+- `NEXT_PUBLIC_API_URL` no docker-compose lida do `.env` para facilitar configuração na VPS sem rebuild hardcoded.
+- `src/app/favicon.ico` é a convenção mais confiável do Next.js (gera `<link>` automático); `public/` mantém os demais assets.
+
+**No pending items.**
