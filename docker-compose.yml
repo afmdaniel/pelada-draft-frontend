@@ -11,7 +11,7 @@ services:
       NODE_ENV: production
       PORT: "3001"
       HOSTNAME: "0.0.0.0"
-healthcheck:
+    healthcheck:
       test:
         - "CMD"
         - "node"
