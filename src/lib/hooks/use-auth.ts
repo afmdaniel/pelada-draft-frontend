@@ -28,7 +28,8 @@ export function useLogin(redirectTo?: string) {
 
   return useMutation({
     mutationFn: (payload: LoginPayload) => login(payload),
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
+      await fetch("/api/auth/session", { method: "POST" });
       queryClient.invalidateQueries({ queryKey: authKeys.me });
       toast.success(response.message);
       router.push(redirectTo ?? "/peladas");
@@ -60,7 +61,10 @@ export function useLogout() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: logout,
+    mutationFn: async () => {
+      await logout();
+      await fetch("/api/auth/session", { method: "DELETE" });
+    },
     onSettled: () => {
       queryClient.clear();
       router.push("/login");

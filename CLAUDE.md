@@ -66,3 +66,44 @@ response types, and validation rules.
 - Player list on pelada detail uses grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 to fill space without conflicting with right panel on lg
 
 **No pending items — responsive task complete.**
+
+### Session — 2026-06-15 (continuação)
+
+**Implemented:**
+- Docker production setup: multi-stage `Dockerfile` (deps → builder → runner, node:20-alpine)
+- `docker-compose.yml` with `host.docker.internal:host-gateway` extra_host for Linux, health check via `node -e fetch(...)`, `restart: unless-stopped`
+- `.dockerignore` excluding node_modules, .next, .git, .env files
+- `src/app/api/health/route.ts` — GET /api/health returns `{ status: "ok" }`
+- `.env.example` updated with documentation for dev/Docker/prod URL values
+- `next.config.ts` — added `output: "standalone"` (required for standalone runner)
+- `README.md` — added `## Rodando com Docker` section with local, env vars, production, and health check subsections
+- Fixed action bar padding on draw screen desktop (removed erroneous `lg:px-0`)
+- Fixed image export: white corners (temporarily remove border-radius before toPng), intermittent errors (await document.fonts.ready, ignore AbortError from cancelled share)
+- Repository cleanup: removed boilerplate SVGs, unused shadcn components, design artifacts; updated .gitignore
+- Established Conventional Commits rules (Portuguese, imperative mood)
+
+**Key decisions:**
+- `NEXT_PUBLIC_API_URL` is a build ARG (not runtime env) because Next.js bakes it into the bundle at build time
+- Docker healthcheck uses `node -e "fetch(...)"` — no curl/wget on Alpine, but Node is guaranteed
+- Image export: `el.style.borderRadius = "0"` before toPng, restored to `""` after — keeps rounded corners in UI but exports rectangular PNG
+- `output: "standalone"` was missing from next.config.ts despite being referenced in prior docs
+
+**Pending items:**
+- Docker build/up/down validation could not be run — Docker CLI not installed in this dev container. Files are correct; validate on a machine with Docker.
+
+**No open decisions.**
+
+### Session — 2026-06-15 (Docker fixes)
+
+**Implemented:**
+- Fixed Dockerfile: removed `COPY --from=builder /app/public ./public` — project has no `public/` directory
+- Fixed Docker networking: `NEXT_PUBLIC_API_URL` must be `http://localhost:3000`, not `host.docker.internal:3000`, because the variable is baked into the JS bundle and executed in the user's browser (not inside the container)
+- Removed `network_mode: host` (broke WSL2 port accessibility) and `extra_hosts` (unnecessary with correct URL)
+- Fixed YAML indentation bug in `docker-compose.yml` introduced when removing `extra_hosts` block
+- Docker build and app confirmed working in production
+
+**Key decisions:**
+- `NEXT_PUBLIC_*` runs in the browser, not in Docker — so the API URL must be resolvable from the browser's perspective (`localhost:3000`), not from inside the container
+- `network_mode: host` does not work correctly on WSL2 for port forwarding to the Windows browser
+
+**No pending items.**
