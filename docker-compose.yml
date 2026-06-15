@@ -4,15 +4,16 @@ services:
       context: .
       args:
         # NEXT_PUBLIC_* são baked-in em build time — não altere sem rebuild
-        # Com network_mode: host, localhost dentro do container = localhost da máquina host
-        NEXT_PUBLIC_API_URL: http://localhost:3000
-    # network_mode: host no Linux faz localhost do container apontar para a máquina host,
-    # eliminando a necessidade de host.docker.internal e port mapping.
-    network_mode: host
+        NEXT_PUBLIC_API_URL: http://host.docker.internal:3000
+    ports:
+      - "3001:3001"
     environment:
       NODE_ENV: production
       PORT: "3001"
       HOSTNAME: "0.0.0.0"
+    # Garante que host.docker.internal resolva no Linux/WSL2
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test:
         - "CMD"
