@@ -1,8 +1,9 @@
 "use client";
 
-import { Share2, Shuffle, Trophy, Volleyball } from "lucide-react";
+import { toPng } from "html-to-image";
+import { ImageDown, Share2, Shuffle, Trophy, Volleyball } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { TeamPanel } from "@/components/draw/team-panel";
@@ -44,6 +45,7 @@ function ShareSheet({
   peladaName: string;
   teams: DrawTeam[];
 }) {
+  const previewRef = useRef<HTMLDivElement>(null);
   const date = new Date().toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "long",
@@ -65,24 +67,58 @@ function ShareSheet({
     window.open(url, "_blank", "noopener,noreferrer");
   }
 
+  async function shareImage() {
+    if (!previewRef.current) return;
+    try {
+      const dataUrl = await toPng(previewRef.current, { pixelRatio: 2 });
+      const fileName = `times-${peladaName.toLowerCase().replace(/\s+/g, "-")}.png`;
+
+      const canShareFiles =
+        typeof navigator.share === "function" &&
+        navigator.canShare?.({
+          files: [new File([""], "test.png", { type: "image/png" })],
+        });
+
+      if (canShareFiles) {
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        const file = new File([blob], fileName, { type: "image/png" });
+        await navigator.share({ title: `Times — ${peladaName}`, files: [file] });
+      } else {
+        const link = document.createElement("a");
+        link.download = fileName;
+        link.href = dataUrl;
+        link.click();
+      }
+    } catch {
+      toast.error("Não foi possível exportar a imagem.");
+    }
+  }
+
   return (
     <BottomSheet
       open={open}
       onOpenChange={onOpenChange}
       title="Compartilhar times"
       footer={
-        <div className="flex gap-2.5">
-          <AppButton variant="secondary" icon={Share2} onClick={copy} className="px-4">
-            Copiar
-          </AppButton>
-          <AppButton full onClick={shareWhatsApp}>
-            Enviar no WhatsApp
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2.5">
+            <AppButton variant="secondary" icon={Share2} onClick={copy} className="px-3 shrink-0">
+              Copiar texto
+            </AppButton>
+            <AppButton full onClick={shareWhatsApp}>
+              WhatsApp
+            </AppButton>
+          </div>
+          <AppButton variant="soft" full icon={ImageDown} onClick={shareImage}>
+            Salvar como imagem
           </AppButton>
         </div>
       }
     >
       {/* prévia do gráfico exportável */}
       <div
+        ref={previewRef}
         className="relative overflow-hidden rounded-[18px] border border-line p-4"
         style={{ background: "linear-gradient(165deg, #131a26, #0d121b)" }}
       >
@@ -102,14 +138,14 @@ function ShareSheet({
             />
           </div>
           <div className="flex-1">
-            <div className="font-display text-[15px] leading-none font-bold uppercase text-white">
+            <div className="font-display text-[0.9375rem] leading-none font-bold uppercase text-white">
               {peladaName}
             </div>
-            <div className="font-sans text-[10.5px] font-semibold text-white/50">
+            <div className="font-sans text-[0.65625rem] font-semibold text-white/50">
               {date} · {teams.length} times
             </div>
           </div>
-          <div className="font-display text-[10px] font-bold uppercase tracking-[0.06em] text-primary">
+          <div className="font-display text-[0.625rem] font-bold uppercase tracking-[0.06em] text-primary">
             PeladaDraft
           </div>
         </div>
@@ -176,8 +212,6 @@ export default function DrawPage() {
 
   const [shareOpen, setShareOpen] = useState(false);
 
-  // o sorteio é disparado na tela da pelada; quem chega aqui sem ter
-  // sorteado (deep link / refresh) volta para configurar os convocados
   const orphan = draw.isIdle && !draw.data;
   useEffect(() => {
     if (orphan) router.replace(`/peladas/${peladaId}`);
@@ -207,13 +241,13 @@ export default function DrawPage() {
         }
       />
 
-      <div className="flex-1 px-4 pb-3">
+      <div className="flex-1 px-4 pb-3 lg:px-0">
         {/* hero */}
         <div className="mb-4 animate-fade-up">
-          <div className="mb-[5px] font-sans text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+          <div className="mb-[5px] font-sans text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-primary">
             {peladaName}
           </div>
-          <h1 className="font-display text-[30px] leading-[0.95] font-bold uppercase text-foreground">
+          <h1 className="font-display text-[1.875rem] leading-[0.95] font-bold uppercase text-foreground">
             Times Sorteados
           </h1>
           <div className="mt-[11px] flex gap-[7px]">
@@ -229,7 +263,7 @@ export default function DrawPage() {
         </div>
 
         {draw.isPending && (
-          <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Skeleton className="h-48 rounded-[18px]" />
             <Skeleton className="h-48 rounded-[18px]" />
           </div>
@@ -252,7 +286,10 @@ export default function DrawPage() {
         )}
 
         {teams && !draw.isPending && (
-          <div key={drawKey} className="flex flex-col gap-[13px]">
+          <div
+            key={drawKey}
+            className="grid grid-cols-1 gap-[13px] sm:grid-cols-2 xl:grid-cols-3"
+          >
             {teams.map((team, index) => (
               <TeamPanel
                 key={index}
@@ -292,7 +329,7 @@ export default function DrawPage() {
           }}
         >
           <Shuffle className="size-[21px]" strokeWidth={2.2} />
-          <span className="font-display text-[17px] font-bold uppercase tracking-[0.02em] whitespace-nowrap">
+          <span className="font-display text-[1.0625rem] font-bold uppercase tracking-[0.02em] whitespace-nowrap">
             {draw.isPending ? "Sorteando..." : "Refazer Sorteio"}
           </span>
         </button>
