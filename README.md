@@ -1,5 +1,7 @@
 # Pelada Draft — Front end
 
+**Produção:** [app.pelada-draft.com.br](https://app.pelada-draft.com.br) · **Back end:** [afmdaniel/pelada-draft-backend](https://github.com/afmdaniel/pelada-draft-backend)
+
 Aplicação web para gerenciar peladas (grupos de futebol amador): cadastro de jogadores com estrelas e posição, sorteio equilibrado de times e gerenciamento de permissões.
 
 O visual segue fielmente o protótipo de design em `design/` (tema escuro "sport tech" com azul elétrico, fontes Oswald + Manrope, shell mobile-first com tab bar inferior e bottom sheets). Tema claro disponível na aba Perfil.
