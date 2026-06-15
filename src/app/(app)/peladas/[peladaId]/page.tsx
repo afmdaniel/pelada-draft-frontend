@@ -302,7 +302,7 @@ export default function PeladaPage() {
 
         {/* barra de sorteio — sticky bottom no mobile, painel direito no lg */}
         <div className="sticky bottom-0 z-40 w-full border-t border-line-soft bg-[color-mix(in_oklch,var(--surface)_90%,transparent)] px-4 pt-[11px] pb-3.5 backdrop-blur-md lg:bottom-auto lg:top-6 lg:w-72 lg:shrink-0 lg:self-start lg:rounded-2xl lg:border lg:bg-surface lg:px-4 lg:py-5 lg:shadow-card lg:backdrop-blur-none">
-          <div className="mb-[11px] flex items-center justify-between">
+          <div className="mb-[11px] flex items-center justify-between gap-4">
             <div className="flex items-center gap-[9px]">
               <span className="font-sans text-[0.65625rem] font-bold uppercase tracking-[0.08em] text-faint">
                 Times
