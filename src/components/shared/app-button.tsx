@@ -9,7 +9,7 @@ type Size = "sm" | "md" | "lg";
 
 const VARIANT_CLASSES: Record<Variant, string> = {
   primary:
-    "bg-primary text-primary-foreground shadow-[0_8px_20px_-10px_var(--accent-color)]",
+    "bg-primary text-primary-foreground shadow-[0_0.5rem_1.25rem_-0.625rem_var(--accent-color)]",
   secondary: "bg-card-hi text-foreground border border-line",
   ghost: "bg-transparent text-muted-foreground",
   danger:
@@ -18,9 +18,9 @@ const VARIANT_CLASSES: Record<Variant, string> = {
 };
 
 const SIZE_CLASSES: Record<Size, string> = {
-  sm: "text-[13px] px-3 h-9 gap-1.5",
-  md: "text-[15px] px-4 h-12 gap-2",
-  lg: "text-base px-5 h-[54px] gap-2",
+  sm: "text-[0.8125rem] px-3 min-h-11 gap-1.5 md:min-h-9",
+  md: "text-[0.9375rem] px-4 min-h-12 gap-2",
+  lg: "text-base px-5 min-h-13.5 gap-2",
 };
 
 interface AppButtonProps extends React.ComponentProps<"button"> {
@@ -52,7 +52,12 @@ export function AppButton({
       )}
       {...rest}
     >
-      {Icon && <Icon className={size === "sm" ? "size-4" : "size-[18px]"} strokeWidth={2.2} />}
+      {Icon && (
+        <Icon
+          className={size === "sm" ? "size-4" : "size-4.5"}
+          strokeWidth={2.2}
+        />
+      )}
       {children}
     </button>
   );

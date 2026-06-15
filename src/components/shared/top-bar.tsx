@@ -10,7 +10,7 @@ interface TopBarProps {
 
 export function TopBar({ title, onBack, right }: TopBarProps) {
   return (
-    <div className="flex shrink-0 items-center gap-2 px-3 pt-1 pb-3">
+    <div className="flex shrink-0 items-center gap-2 px-3 pt-1 pb-3 lg:px-0">
       <button
         type="button"
         onClick={onBack}

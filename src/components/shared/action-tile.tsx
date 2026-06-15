@@ -28,7 +28,7 @@ export function ActionTile({
     >
       <Glyph className="size-5" strokeWidth={2} />
       <span
-        className={`font-sans text-[11px] font-bold ${
+        className={`font-sans text-[0.6875rem] font-bold ${
           danger && !locked ? "text-danger" : "text-foreground"
         }`}
       >

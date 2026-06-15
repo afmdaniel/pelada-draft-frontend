@@ -31,7 +31,7 @@ export function PlayerCard({
         type="button"
         onClick={onToggle}
         disabled={!selectable}
-        className="relative w-full overflow-hidden rounded-[18px] p-[13px] text-left transition active:scale-[0.98] disabled:active:scale-100"
+        className="relative w-full overflow-hidden rounded-[18px] p-[0.8125rem] text-left transition active:scale-[0.98] disabled:active:scale-100"
         style={{
           background:
             "linear-gradient(157deg, var(--card-hi) 0%, var(--card) 52%, var(--card) 100%)",
@@ -46,7 +46,7 @@ export function PlayerCard({
         {/* filete de cor da posição */}
         <span
           className="absolute left-0 w-[3px] rounded-[3px]"
-          style={{ top: 14, bottom: 14, background: meta.accent }}
+          style={{ top: "0.875rem", bottom: "0.875rem", background: meta.accent }}
         />
         {/* brilho */}
         <span
@@ -59,40 +59,40 @@ export function PlayerCard({
 
         {selectable && (
           <span
-            className="absolute top-2.5 right-2.5 grid size-[22px] place-items-center rounded-full transition-all"
+            className="absolute top-2.5 right-2.5 grid size-[1.375rem] place-items-center rounded-full transition-all"
             style={{
               background: selected ? "var(--accent-color)" : "transparent",
               border: `1.6px solid ${selected ? "var(--accent-color)" : "var(--line)"}`,
               color: "var(--accent-ink)",
             }}
           >
-            {selected && <Check className="size-[13px]" strokeWidth={3} />}
+            {selected && <Check className="size-[0.8125rem]" strokeWidth={3} />}
           </span>
         )}
 
         <div className="relative flex items-center gap-3">
           {/* bloco de rating */}
-          <div className="w-[46px] shrink-0 pl-1 text-center">
-            <div className="font-display text-[34px] leading-[0.9] font-bold text-foreground">
+          <div className="w-[2.875rem] shrink-0 pl-1 text-center">
+            <div className="font-display text-[2.125rem] leading-[0.9] font-bold text-foreground">
               {player.stars}
             </div>
-            <div className="mt-0.5 font-display text-[9px] font-medium uppercase tracking-[0.12em] text-faint">
+            <div className="mt-0.5 font-display text-[0.5625rem] font-medium uppercase tracking-[0.12em] text-faint">
               OVR
             </div>
           </div>
           {/* badge de posição */}
           <div
-            className="flex size-[52px] shrink-0 flex-col items-center justify-center gap-px rounded-[14px]"
+            className="flex size-[3.25rem] shrink-0 flex-col items-center justify-center gap-px rounded-[14px]"
             style={{
               background: `color-mix(in oklch, ${meta.accent} 18%, var(--surface))`,
               border: `1px solid color-mix(in oklch, ${meta.accent} 35%, transparent)`,
               color: meta.accent,
             }}
           >
-            <span className="font-display text-[17px] leading-none font-bold uppercase tracking-[0.02em]">
+            <span className="font-display text-[1.0625rem] leading-none font-bold uppercase tracking-[0.02em]">
               {meta.short}
             </span>
-            <span className="font-sans text-[7.5px] font-semibold uppercase tracking-[0.08em] opacity-80">
+            <span className="font-sans text-[0.46875rem] font-semibold uppercase tracking-[0.08em] opacity-80">
               {meta.label}
             </span>
           </div>
@@ -116,7 +116,7 @@ export function PlayerCard({
             onEdit();
           }}
           aria-label={`Editar ${player.name}`}
-          className="absolute right-2.5 bottom-2.5 z-[2] grid size-[30px] place-items-center rounded-[9px] border border-line bg-surface text-muted-foreground transition active:scale-90"
+          className="absolute right-2.5 bottom-2.5 z-[2] grid size-[1.875rem] place-items-center rounded-[9px] border border-line bg-surface text-muted-foreground transition active:scale-90"
         >
           <Pencil className="size-3.5" />
         </button>

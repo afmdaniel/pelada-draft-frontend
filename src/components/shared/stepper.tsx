@@ -13,7 +13,7 @@ export function Stepper({ value, min, max, onChange }: StepperProps) {
       type="button"
       onClick={fn}
       disabled={disabled}
-      className="grid size-[30px] place-items-center rounded-[9px] border border-line bg-card-hi font-display text-lg font-bold text-foreground transition active:scale-90 disabled:opacity-40"
+      className="grid size-[1.875rem] place-items-center rounded-[9px] border border-line bg-card-hi font-display text-lg font-bold text-foreground transition active:scale-90 disabled:opacity-40"
     >
       {label}
     </button>
