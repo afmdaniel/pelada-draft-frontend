@@ -1,12 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Lock, User, Volleyball } from "lucide-react";
+import { User, Volleyball } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { AppButton } from "@/components/shared/app-button";
-import { Field, TextField } from "@/components/shared/field";
+import { Field, PasswordTextField, TextField } from "@/components/shared/field";
+import { TermsModal } from "@/components/shared/terms-modal";
 import { useLogin, useRegister } from "@/lib/hooks/use-auth";
 import {
   loginSchema,
@@ -78,6 +80,8 @@ function Shell({
   mode: "login" | "register";
   children: React.ReactNode;
 }) {
+  const [termsOpen, setTermsOpen] = useState(false);
+
   return (
     <div className="noscroll flex flex-1 flex-col overflow-y-auto md:flex-none">
       <div className="flex flex-1 flex-col justify-center px-6.5 py-8 md:rounded-3xl md:border md:border-line-soft md:bg-surface md:px-10 md:py-10 md:shadow-card">
@@ -87,9 +91,18 @@ function Shell({
       </div>
       <div className="px-6.5 pt-3.5 pb-6.5 text-center">
         <span className="text-[0.72rem] text-faint">
-          Ao continuar você concorda com os termos da pelada ⚽
+          Ao continuar você concorda com os{" "}
+          <button
+            type="button"
+            onClick={() => setTermsOpen(true)}
+            className="text-primary underline-offset-2 hover:underline"
+          >
+            Termos de Serviço e Privacidade
+          </button>{" "}
+          ⚽
         </span>
       </div>
+      <TermsModal open={termsOpen} onOpenChange={setTermsOpen} />
     </div>
   );
 }
@@ -121,9 +134,7 @@ export function LoginScreen({ redirectTo }: { redirectTo?: string }) {
           />
         </Field>
         <Field label="Senha" error={errors.password?.message}>
-          <TextField
-            icon={Lock}
-            type="password"
+          <PasswordTextField
             placeholder="Sua senha"
             autoComplete="current-password"
             invalid={!!errors.password}
@@ -156,6 +167,7 @@ export function LoginScreen({ redirectTo }: { redirectTo?: string }) {
 
 export function RegisterScreen() {
   const registerMutation = useRegister();
+  const [termsOpen, setTermsOpen] = useState(false);
   const {
     register,
     handleSubmit,
@@ -167,6 +179,7 @@ export function RegisterScreen() {
       username: "",
       password: "",
       passwordConfirmation: "",
+      acceptedTerms: false,
     },
   });
 
@@ -196,9 +209,7 @@ export function RegisterScreen() {
           />
         </Field>
         <Field label="Senha" error={errors.password?.message}>
-          <TextField
-            icon={Lock}
-            type="password"
+          <PasswordTextField
             placeholder="Mín. 6 caracteres"
             autoComplete="new-password"
             invalid={!!errors.password}
@@ -209,15 +220,38 @@ export function RegisterScreen() {
           label="Confirmar senha"
           error={errors.passwordConfirmation?.message}
         >
-          <TextField
-            icon={Lock}
-            type="password"
+          <PasswordTextField
             placeholder="Repita a senha"
             autoComplete="new-password"
             invalid={!!errors.passwordConfirmation}
             {...register("passwordConfirmation")}
           />
         </Field>
+
+        {/* terms checkbox */}
+        <label className="mb-4 flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            className="mt-0.5 size-4.5 shrink-0 accent-[var(--accent-color)] cursor-pointer"
+            {...register("acceptedTerms")}
+          />
+          <span className="font-sans text-[0.8125rem] leading-snug text-muted-foreground">
+            Li e aceito os{" "}
+            <button
+              type="button"
+              onClick={() => setTermsOpen(true)}
+              className="text-primary underline-offset-2 hover:underline"
+            >
+              Termos de Serviço e Política de Privacidade
+            </button>
+          </span>
+        </label>
+        {errors.acceptedTerms && (
+          <span className="-mt-2 mb-3.5 block text-[0.71875rem] font-semibold text-danger">
+            {errors.acceptedTerms.message}
+          </span>
+        )}
+
         <AppButton
           type="submit"
           full
@@ -228,6 +262,7 @@ export function RegisterScreen() {
           {registerMutation.isPending ? "Criando conta..." : "Criar conta"}
         </AppButton>
       </form>
+      <TermsModal open={termsOpen} onOpenChange={setTermsOpen} />
     </Shell>
   );
 }

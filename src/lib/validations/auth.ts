@@ -16,6 +16,9 @@ export const registerSchema = z
       .max(20, "O nome de usuário deve ter no máximo 20 caracteres"),
     password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
     passwordConfirmation: z.string().min(1, "Confirme sua senha"),
+    acceptedTerms: z
+      .boolean()
+      .refine((v) => v === true, { message: "Você deve aceitar os Termos de Serviço." }),
   })
   .refine((values) => values.password === values.passwordConfirmation, {
     message: "As senhas não conferem",

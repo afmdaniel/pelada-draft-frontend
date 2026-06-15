@@ -6,7 +6,8 @@ import { toast } from "sonner";
 
 import { getMe, login, logout, register } from "@/lib/api/auth";
 import { getApiErrorMessage } from "@/lib/api/axios";
-import type { LoginPayload, RegisterPayload } from "@/types/api";
+import type { RegisterFormValues } from "@/lib/validations/auth";
+import type { LoginPayload } from "@/types/api";
 
 export const authKeys = {
   me: ["auth", "me"] as const,
@@ -45,7 +46,7 @@ export function useRegister() {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: (payload: RegisterPayload) => register(payload),
+    mutationFn: ({ acceptedTerms: _, ...payload }: RegisterFormValues) => register(payload),
     onSuccess: (response) => {
       toast.success(response.message);
       router.push("/login");

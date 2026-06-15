@@ -2,27 +2,32 @@
 
 import {
   ChevronRight,
+  FileText,
   LogOut,
   Settings,
   Shield,
   Volleyball,
 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { ScreenHeader } from "@/components/shared/screen-header";
+import { TermsModal } from "@/components/shared/terms-modal";
 import { useLogout, useMe } from "@/lib/hooks/use-auth";
 import { useTheme } from "@/lib/hooks/use-theme";
 
 const MENU = [
-  { icon: Settings, label: "Configurações da conta" },
-  { icon: Shield, label: "Privacidade e segurança" },
-  { icon: Volleyball, label: "Sobre o PeladaDraft" },
+  { icon: Settings, label: "Configurações da conta", terms: false },
+  { icon: Shield, label: "Privacidade e segurança", terms: false },
+  { icon: FileText, label: "Termos de Serviço e Privacidade", terms: true },
+  { icon: Volleyball, label: "Sobre o PeladaDraft", terms: false },
 ];
 
 export default function PerfilPage() {
   const { data: me } = useMe();
   const { theme, setTheme } = useTheme();
   const logoutMutation = useLogout();
+  const [termsOpen, setTermsOpen] = useState(false);
 
   const display = me?.username ?? "jogador";
 
@@ -98,11 +103,11 @@ export default function PerfilPage() {
           <div className="flex flex-col gap-3 lg:flex-1">
             {/* menu */}
             <div className="overflow-hidden rounded-2xl border border-line-soft bg-card">
-              {MENU.map(({ icon: Icon, label }, index) => (
+              {MENU.map(({ icon: Icon, label, terms }, index) => (
                 <button
                   key={label}
                   type="button"
-                  onClick={() => toast("Em breve.")}
+                  onClick={() => (terms ? setTermsOpen(true) : toast("Em breve."))}
                   className={`flex w-full items-center gap-[13px] px-[15px] py-3.5 text-left text-foreground transition active:bg-black/10 ${
                     index > 0 ? "border-t border-line-soft" : ""
                   }`}
@@ -133,6 +138,7 @@ export default function PerfilPage() {
           </div>
         </div>
       </div>
+      <TermsModal open={termsOpen} onOpenChange={setTermsOpen} />
     </div>
   );
 }
