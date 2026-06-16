@@ -1,3 +1,14 @@
+# Segredos necessários no repositório GitHub (Settings → Secrets and variables → Actions):
+#
+# GITHUB_TOKEN          — automático, não precisa configurar
+# NEXT_PUBLIC_API_URL   — URL de produção da API (ex: https://api.pelada-draft.com.br)
+# VPS_HOST              — IP ou hostname da VPS
+# VPS_USER              — usuário SSH da VPS
+# VPS_PORT              — porta SSH da VPS
+# VPS_SSH_KEY           — chave privada SSH (conteúdo do arquivo .pem / id_rsa)
+# GHCR_TOKEN            — GitHub Personal Access Token com escopo read:packages,
+#                         usado pela VPS para autenticar no GHCR e fazer docker pull
+
 name: Deploy
 
 on:
@@ -5,9 +16,37 @@ on:
     branches: [main]
 
 jobs:
+  build-and-push:
+    name: Build e push da imagem para GHCR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login no GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build e push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}:latest
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+
   deploy:
     name: Deploy na VPS
     runs-on: ubuntu-latest
+    needs: build-and-push
 
     steps:
       - name: Deploy via SSH
@@ -17,11 +56,11 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          command_timeout: 10m
+          command_timeout: 5m
           script: |
             set -e
-            cd ${{ secrets.VPS_PATH }}
-            git pull origin main
-            docker compose build
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.VPS_USER }} --password-stdin
+            cd ~/pelada-draft-frontend
+            docker compose pull
             docker compose up -d
             docker image prune -f

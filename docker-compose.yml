@@ -1,11 +1,8 @@
 services:
   app:
-    build:
-      context: .
-      args:
-        # NEXT_PUBLIC_* são baked-in em build time — não altere sem rebuild
-        # Lido do arquivo .env na raiz do projeto (copie .env.example → .env)
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+    # Imagem construída e publicada pelo GitHub Actions — nunca buildar localmente em produção.
+    # Para desenvolvimento local use: docker build -t pelada-draft-frontend . && docker run ...
+    image: ghcr.io/afmdaniel/pelada-draft-frontend:latest
     ports:
       - "3001:3001"
     environment:
