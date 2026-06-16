@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Lock, Pencil, Plus, Shield, Shuffle, Trash2, User } from "lucide-react";
+import { Check, Lock, Pencil, Plus, Search, Shield, Shuffle, Trash2, User, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -62,6 +62,7 @@ export default function PeladaPage() {
 
   const [editNameOpen, setEditNameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [playerSheet, setPlayerSheet] = useState<{
     open: boolean;
     player: Player | null;
@@ -103,6 +104,9 @@ export default function PeladaPage() {
   const canManage = hasPrivilege(pelada, "MANAGE_PLAYERS", me);
   const canDraw = hasPrivilege(pelada, "DRAW_TEAMS", me);
   const players = playersData ?? [];
+  const filteredPlayers = players.filter((p) =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   const count = selectedIds.length;
   const allSelected = players.length > 0 && count === players.length;
 
@@ -273,6 +277,31 @@ export default function PeladaPage() {
             </div>
           </div>
 
+          {players.length > 0 && (
+            <div className="relative mb-3">
+              <span className="pointer-events-none absolute top-1/2 left-[0.8125rem] -translate-y-1/2 text-faint">
+                <Search className="size-[1.125rem]" />
+              </span>
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar jogador..."
+                className="min-h-[2.75rem] w-full rounded-[0.8125rem] border border-line bg-card pl-[2.625rem] pr-[2.75rem] font-sans text-[0.9375rem] font-semibold text-foreground outline-none transition-all placeholder:text-faint focus:border-primary focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  aria-label="Limpar busca"
+                  className="absolute top-1/2 right-[0.8125rem] -translate-y-1/2 text-faint transition hover:text-muted-foreground active:scale-90"
+                >
+                  <X className="size-[1.125rem]" />
+                </button>
+              )}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 gap-2.5 pb-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
             {players.length === 0 && (
               <p className="col-span-full py-8 text-center font-sans text-[0.84375rem] text-muted-foreground">
@@ -282,7 +311,12 @@ export default function PeladaPage() {
                   : "Peça ao dono para cadastrar os jogadores."}
               </p>
             )}
-            {players.map((player) => (
+            {filteredPlayers.length === 0 && searchQuery && players.length > 0 && (
+              <p className="col-span-full py-8 text-center font-sans text-[0.84375rem] text-muted-foreground">
+                Nenhum jogador encontrado para &ldquo;{searchQuery}&rdquo;.
+              </p>
+            )}
+            {filteredPlayers.map((player) => (
               <PlayerCard
                 key={player.id}
                 player={player}

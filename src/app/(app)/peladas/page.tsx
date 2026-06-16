@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Plus, User, Volleyball } from "lucide-react";
+import { ChevronRight, Plus, Search, User, Volleyball, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -90,6 +90,11 @@ export default function PeladasPage() {
   const { data: peladas, isLoading, isError, error, refetch } = usePeladas();
   const createMutation = useCreatePelada();
   const [createOpen, setCreateOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredPeladas = peladas?.filter((p) =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   function handleCreate(name: string) {
     createMutation.mutate(
@@ -115,43 +120,78 @@ export default function PeladasPage() {
         }
       />
 
-      <div className="grid grid-cols-1 gap-3 px-4 pb-6 md:grid-cols-2 lg:grid-cols-3 lg:px-0">
-        {isLoading && (
-          <>
-            <Skeleton className="h-[118px] rounded-[18px]" />
-            <Skeleton className="h-[118px] rounded-[18px]" />
-            <Skeleton className="h-[118px] rounded-[18px]" />
-          </>
-        )}
-
-        {isError && (
-          <div className="rounded-[18px] border border-line-soft bg-card p-6 text-center">
-            <p className="font-sans text-sm text-muted-foreground">
-              {getApiErrorMessage(error)}
-            </p>
-            <AppButton
-              variant="secondary"
-              size="sm"
-              onClick={() => refetch()}
-              className="mx-auto mt-4"
-            >
-              Tentar novamente
-            </AppButton>
+      <div className="px-4 pb-6 lg:px-0">
+        {peladas && peladas.length > 0 && (
+          <div className="relative mb-4">
+            <span className="pointer-events-none absolute top-1/2 left-[0.8125rem] -translate-y-1/2 text-faint">
+              <Search className="size-[1.125rem]" />
+            </span>
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar pelada..."
+              className="min-h-[2.75rem] w-full rounded-[0.8125rem] border border-line bg-card pl-[2.625rem] pr-[2.75rem] font-sans text-[0.9375rem] font-semibold text-foreground outline-none transition-all placeholder:text-faint focus:border-primary focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                aria-label="Limpar busca"
+                className="absolute top-1/2 right-[0.8125rem] -translate-y-1/2 text-faint transition hover:text-muted-foreground active:scale-90"
+              >
+                <X className="size-[1.125rem]" />
+              </button>
+            )}
           </div>
         )}
 
-        {peladas && peladas.length === 0 && (
-          <EmptyState onCreate={() => setCreateOpen(true)} />
-        )}
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {isLoading && (
+            <>
+              <Skeleton className="h-[118px] rounded-[18px]" />
+              <Skeleton className="h-[118px] rounded-[18px]" />
+              <Skeleton className="h-[118px] rounded-[18px]" />
+            </>
+          )}
 
-        {peladas?.map((pelada, index) => (
-          <PeladaCard
-            key={pelada.id}
-            pelada={pelada}
-            owner={isOwner(pelada, me)}
-            index={index}
-          />
-        ))}
+          {isError && (
+            <div className="col-span-full rounded-[18px] border border-line-soft bg-card p-6 text-center">
+              <p className="font-sans text-sm text-muted-foreground">
+                {getApiErrorMessage(error)}
+              </p>
+              <AppButton
+                variant="secondary"
+                size="sm"
+                onClick={() => refetch()}
+                className="mx-auto mt-4"
+              >
+                Tentar novamente
+              </AppButton>
+            </div>
+          )}
+
+          {peladas && peladas.length === 0 && (
+            <div className="col-span-full">
+              <EmptyState onCreate={() => setCreateOpen(true)} />
+            </div>
+          )}
+
+          {filteredPeladas && filteredPeladas.length === 0 && searchQuery && (
+            <p className="col-span-full py-8 text-center font-sans text-[0.84375rem] text-muted-foreground">
+              Nenhuma pelada encontrada para &ldquo;{searchQuery}&rdquo;.
+            </p>
+          )}
+
+          {filteredPeladas?.map((pelada, index) => (
+            <PeladaCard
+              key={pelada.id}
+              pelada={pelada}
+              owner={isOwner(pelada, me)}
+              index={index}
+            />
+          ))}
+        </div>
       </div>
 
       <PeladaNameSheet

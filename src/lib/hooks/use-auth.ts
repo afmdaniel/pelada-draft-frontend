@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { getMe, login, logout, register } from "@/lib/api/auth";
-import { getApiErrorMessage } from "@/lib/api/axios";
+import { getApiErrorMessage, resetRefreshState } from "@/lib/api/axios";
 import type { RegisterFormValues } from "@/lib/validations/auth";
 import type { LoginPayload } from "@/types/api";
 
@@ -30,6 +30,7 @@ export function useLogin(redirectTo?: string) {
   return useMutation({
     mutationFn: (payload: LoginPayload) => login(payload),
     onSuccess: async (response) => {
+      resetRefreshState();
       await fetch("/api/auth/session", { method: "POST" });
       queryClient.invalidateQueries({ queryKey: authKeys.me });
       toast.success(response.message);

@@ -14,6 +14,7 @@ interface RetriableConfig extends InternalAxiosRequestConfig {
 const AUTH_ROUTES = ["/auth/login", "/auth/refresh", "/auth/register"];
 
 let isRefreshing = false;
+let refreshFailed = false;
 let pendingQueue: Array<{
   resolve: () => void;
   reject: (reason?: unknown) => void;
@@ -24,10 +25,21 @@ function flushQueue(error?: unknown) {
   pendingQueue = [];
 }
 
-function redirectToLogin() {
+export function resetRefreshState() {
+  isRefreshing = false;
+  refreshFailed = false;
+  pendingQueue = [];
+}
+
+async function clearSessionAndRedirect() {
   if (typeof window === "undefined") return;
   const { pathname } = window.location;
   if (pathname === "/login" || pathname === "/register") return;
+  try {
+    await fetch("/api/auth/session", { method: "DELETE" });
+  } catch {
+    // best-effort
+  }
   window.location.href = "/login";
 }
 
@@ -38,7 +50,7 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const isAuthRoute = AUTH_ROUTES.some((route) => original?.url?.includes(route));
 
-    if (status !== 401 || !original || original._retry || isAuthRoute) {
+    if (status !== 401 || !original || original._retry || isAuthRoute || refreshFailed) {
       return Promise.reject(error);
     }
 
@@ -57,8 +69,9 @@ api.interceptors.response.use(
       flushQueue();
       return api(original);
     } catch (refreshError) {
+      refreshFailed = true;
       flushQueue(refreshError);
-      redirectToLogin();
+      await clearSessionAndRedirect();
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;
