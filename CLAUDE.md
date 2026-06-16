@@ -144,3 +144,31 @@ response types, and validation rules.
 - `src/app/favicon.ico` é a convenção mais confiável do Next.js (gera `<link>` automático); `public/` mantém os demais assets.
 
 **No pending items.**
+
+### Session — 2026-06-16
+
+**Implemented:**
+
+- **Fix loop infinito de refresh (`src/lib/api/axios.ts`, `src/lib/hooks/use-auth.ts`):**
+  - Adicionada flag `refreshFailed` no interceptor Axios: após primeira falha de refresh, requisições subsequentes com 401 (ex: retentativas do React Query) são rejeitadas diretamente sem disparar novo refresh — quebra o loop
+  - `redirectToLogin()` substituída por `clearSessionAndRedirect()`: chama `DELETE /api/auth/session` antes de navegar para `/login`, limpando o cookie `has_session` — impede que `proxy.ts` redirecione de volta para `/peladas`
+  - Exportada `resetRefreshState()` e chamada em `useLogin.onSuccess` para zerar o estado na próxima sessão autenticada
+
+- **Barras de busca por nome (`/peladas` e `/peladas/[peladaId]`):**
+  - Input com ícone `Search` à esquerda e botão `X` para limpar quando há conteúdo
+  - Filtragem client-side em tempo real (sem chamada à API)
+  - Barra oculta quando a lista está vazia; estado vazio quando nenhum resultado corresponde
+
+- **Alteração de senha (`ChangePasswordSheet`):**
+  - `changePasswordSchema` em `validations/auth.ts`: 3 campos obrigatórios, `newPassword` mínimo 6 chars (per swagger), `.refine` para confirmar que as senhas conferem
+  - Hook `useChangePassword` em `use-auth.ts` chamando `PATCH /auth/change-password`
+  - Componente `src/components/shared/change-password-sheet.tsx`: `BottomSheet` com 3 campos `PasswordTextField` (toggle Eye/EyeOff), loading state no botão, reset automático ao fechar
+  - Item "Alterar senha" (ícone `KeyRound`) adicionado ao menu de Perfil, substituindo placeholder "Privacidade e segurança"
+
+**Key decisions:**
+
+- Loop de refresh: causa raiz era dupla — (1) `has_session` não era limpo antes do redirect, fazendo o proxy redirecionar de volta; (2) React Query retentava queries falhadas criando novos configs Axios sem `_retry`, relançando o refresh
+- Menu de Perfil refatorado de array com booleanos para `action: "terms" | "changePassword" | "soon"` — mais extensível
+- `useChangePassword` não faz toast de sucesso internamente — delegado ao call site no `onSuccess` para que o componente controle seu próprio fechamento
+
+**No pending items.**
