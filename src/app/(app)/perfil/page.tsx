@@ -3,24 +3,25 @@
 import {
   ChevronRight,
   FileText,
+  KeyRound,
   LogOut,
   Settings,
-  Shield,
   Volleyball,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { ChangePasswordSheet } from "@/components/shared/change-password-sheet";
 import { ScreenHeader } from "@/components/shared/screen-header";
 import { TermsModal } from "@/components/shared/terms-modal";
 import { useLogout, useMe } from "@/lib/hooks/use-auth";
 import { useTheme } from "@/lib/hooks/use-theme";
 
 const MENU = [
-  { icon: Settings, label: "Configurações da conta", terms: false },
-  { icon: Shield, label: "Privacidade e segurança", terms: false },
-  { icon: FileText, label: "Termos de Serviço e Privacidade", terms: true },
-  { icon: Volleyball, label: "Sobre o PeladaDraft", terms: false },
+  { icon: Settings, label: "Configurações da conta", action: "soon" as const },
+  { icon: KeyRound, label: "Alterar senha", action: "changePassword" as const },
+  { icon: FileText, label: "Termos de Serviço e Privacidade", action: "terms" as const },
+  { icon: Volleyball, label: "Sobre o PeladaDraft", action: "soon" as const },
 ];
 
 export default function PerfilPage() {
@@ -28,6 +29,7 @@ export default function PerfilPage() {
   const { theme, setTheme } = useTheme();
   const logoutMutation = useLogout();
   const [termsOpen, setTermsOpen] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
 
   const display = me?.username ?? "jogador";
 
@@ -103,11 +105,15 @@ export default function PerfilPage() {
           <div className="flex flex-col gap-3 lg:flex-1">
             {/* menu */}
             <div className="overflow-hidden rounded-2xl border border-line-soft bg-card">
-              {MENU.map(({ icon: Icon, label, terms }, index) => (
+              {MENU.map(({ icon: Icon, label, action }, index) => (
                 <button
                   key={label}
                   type="button"
-                  onClick={() => (terms ? setTermsOpen(true) : toast("Em breve."))}
+                  onClick={() => {
+                    if (action === "terms") setTermsOpen(true);
+                    else if (action === "changePassword") setChangePasswordOpen(true);
+                    else toast("Em breve.");
+                  }}
                   className={`flex w-full items-center gap-[13px] px-[15px] py-3.5 text-left text-foreground transition active:bg-black/10 ${
                     index > 0 ? "border-t border-line-soft" : ""
                   }`}
@@ -139,6 +145,7 @@ export default function PerfilPage() {
         </div>
       </div>
       <TermsModal open={termsOpen} onOpenChange={setTermsOpen} />
+      <ChangePasswordSheet open={changePasswordOpen} onOpenChange={setChangePasswordOpen} />
     </div>
   );
 }

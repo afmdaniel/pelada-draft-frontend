@@ -26,3 +26,16 @@ export const registerSchema = z
   });
 
 export type RegisterFormValues = z.infer<typeof registerSchema>;
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Informe a senha atual"),
+    newPassword: z.string().min(6, "A nova senha deve ter no mínimo 6 caracteres"),
+    newPasswordConfirmation: z.string().min(1, "Confirme a nova senha"),
+  })
+  .refine((v) => v.newPassword === v.newPasswordConfirmation, {
+    message: "As senhas não conferem",
+    path: ["newPasswordConfirmation"],
+  });
+
+export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;

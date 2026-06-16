@@ -4,9 +4,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { getMe, login, logout, register } from "@/lib/api/auth";
+import { changePassword, getMe, login, logout, register } from "@/lib/api/auth";
 import { getApiErrorMessage, resetRefreshState } from "@/lib/api/axios";
-import type { RegisterFormValues } from "@/lib/validations/auth";
+import type { ChangePasswordFormValues, RegisterFormValues } from "@/lib/validations/auth";
 import type { LoginPayload } from "@/types/api";
 
 export const authKeys = {
@@ -52,6 +52,15 @@ export function useRegister() {
       toast.success(response.message);
       router.push("/login");
     },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error));
+    },
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: (payload: ChangePasswordFormValues) => changePassword(payload),
     onError: (error) => {
       toast.error(getApiErrorMessage(error));
     },
