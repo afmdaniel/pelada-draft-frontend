@@ -172,3 +172,32 @@ response types, and validation rules.
 - `useChangePassword` não faz toast de sucesso internamente — delegado ao call site no `onSuccess` para que o componente controle seu próprio fechamento
 
 **No pending items.**
+
+### Session — 2026-06-18
+
+**Implemented:**
+
+- **Migração Docker → GitHub Actions + GHCR:**
+  - `.github/workflows/deploy.yml`: job `build-and-push` faz `docker build` e push para GHCR com `NEXT_PUBLIC_API_URL` como build-arg; job `deploy` faz SSH na VPS e executa `docker compose pull + up -d`
+  - `docker-compose.yml`: substituído bloco `build:` por `image: ghcr.io/afmdaniel/pelada-draft-frontend:latest`
+  - Segredos necessários: `GHCR_TOKEN`, `NEXT_PUBLIC_API_URL`, `VPS_HOST/USER/PORT/SSH_KEY`
+
+- **Correções de bugs:**
+  - Bug 1 (draw button spacing): removido `relative`/`absolute` do badge de contagem; badge agora inline com `shrink-0`
+  - Bug 2 (username placeholder): corrigido de "seu@email.com" para "Nome de usuário" no campo username do cadastro
+  - Bug 3 (admin mostrando DONO): `isOwner` não mais tem short-circuit para ADMIN — só verifica `ownerUsername === user.username`; `hasPrivilege` mantém ADMIN short-circuit
+  - Bug 4 (admin aparecendo como "você"): `· você` e `PrivBadges isOwner` usam `owner` real; `canOwnerActions` (que inclui ADMIN) usado apenas para tiles de ação
+
+- **Melhorias na tela de resultado do sorteio:**
+  - Troca manual de jogadores: seleção em um time + seleção em outro → troca animada via FLIP com clones `position:fixed` (Web Animations API, 420ms, `key={index}`)
+  - Animação de reordenação pós-troca: jogadores que mudam de slot animam 300ms para nova posição via segunda camada de clones; usa `player.name` como chave de identidade (sem `id` em `PlayerSummary`)
+  - Checkbox "Equilibrar posição" movido para action bar do resultado
+  - Contador TIMES: Stepper `− N +` (min 2, max = metade dos convocados) na action bar; "Refazer Sorteio" usa nova contagem
+
+**Key decisions:**
+
+- `NEXT_PUBLIC_*` é build-arg (baked no bundle em build time) → passado como `--build-arg` no GitHub Actions, não env de runtime
+- FLIP reorder: usa `player.name` como identidade; `isAnimatingRef` permanece true durante swap (420ms) + reorder (300ms) em cadeia; clones swap z-index 9999 > reorder 9998
+- Badge do hero exibe `localTeams.length` (número real do sorteio atual) em vez de `teamsQuantity` (alvo do próximo sorteio)
+
+**No pending items.**
