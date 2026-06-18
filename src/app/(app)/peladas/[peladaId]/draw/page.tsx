@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { TeamPanel } from "@/components/draw/team-panel";
 import { usePeladaDraft } from "@/components/peladas/pelada-draft-context";
 import { StarRow } from "@/components/players/star-row";
+import { Stepper } from "@/components/shared/stepper";
 import { AppButton } from "@/components/shared/app-button";
 import { BottomSheet } from "@/components/shared/bottom-sheet";
 import { PrivBadge } from "@/components/shared/priv-badge";
@@ -217,8 +218,14 @@ export default function DrawPage() {
   const { peladaId } = useParams<{ peladaId: string }>();
   const router = useRouter();
   const { data: pelada } = usePelada(peladaId);
-  const { draw, drawKey, runDraw, teamsQuantity, withPosition, setWithPosition } =
-    usePeladaDraft();
+  const {
+    draw, drawKey, runDraw,
+    teamsQuantity, setTeamsQuantity,
+    withPosition, setWithPosition,
+    selectedIds,
+  } = usePeladaDraft();
+
+  const maxTeams = Math.max(2, Math.floor(selectedIds.length / 2));
 
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -322,8 +329,13 @@ export default function DrawPage() {
     el2.style.opacity = "0";
 
     // LAST — synchronously update the DOM (cards now show new content, still hidden)
+    let teamsAfterSwap: DrawTeam[] | null = null;
     flushSync(() => {
-      setLocalTeams((prev) => applySwap(prev, sel, teamIndex, playerIndex));
+      setLocalTeams((prev) => {
+        const next = applySwap(prev, sel, teamIndex, playerIndex);
+        teamsAfterSwap = next;
+        return next;
+      });
       setSwapSelection(null);
       setShowHint(false);
     });
@@ -342,23 +354,16 @@ export default function DrawPage() {
       opts
     );
 
-    const cleanup = () => {
+    const swapCleanup = () => {
       el1.style.opacity = "";
       el2.style.opacity = "";
       clone1.remove();
       clone2.remove();
-      // Re-sort players by stars descending after animation ends
-      setLocalTeams((prev) => {
-        if (!prev) return prev;
-        return prev.map((t) => ({
-          ...t,
-          players: [...t.players].sort((a, b) => b.stars - a.stars),
-        }));
-      });
-      isAnimatingRef.current = false;
+      // FLIP-animate the star-order reorder; it will set isAnimatingRef = false when done
+      animateReorder([sel.teamIndex, teamIndex], teamsAfterSwap);
     };
 
-    Promise.all([anim1.finished, anim2.finished]).then(cleanup).catch(cleanup);
+    Promise.all([anim1.finished, anim2.finished]).then(swapCleanup).catch(swapCleanup);
   }
 
   function applySwap(
@@ -376,6 +381,100 @@ export default function DrawPage() {
     next[sel.teamIndex].totalStars = next[sel.teamIndex].players.reduce((s, p) => s + p.stars, 0);
     next[teamIndex].totalStars = next[teamIndex].players.reduce((s, p) => s + p.stars, 0);
     return next;
+  }
+
+  // FLIP animation for the star-order reorder that follows every swap.
+  // Uses flying clones (same pattern as the swap itself) so cards with key={index}
+  // appear to slide to their new positions even though React updates them in place.
+  function animateReorder(teamIndices: number[], snapshot: DrawTeam[] | null) {
+    if (!snapshot) {
+      isAnimatingRef.current = false;
+      return;
+    }
+
+    type CloneEntry = { clone: HTMLElement; dx: number; dy: number };
+    const pendingClones: CloneEntry[] = [];
+    const elemsToReveal: HTMLElement[] = [];
+
+    for (const ti of teamIndices) {
+      const players = snapshot[ti].players;
+      const sorted = [...players].sort((a, b) => b.stars - a.stars);
+
+      if (players.every((p, pi) => p.name === sorted[pi].name)) continue;
+
+      // Capture the screen rect of every slot in this team (slot positions are stable)
+      const slotRects = players.map(
+        (_, pi) =>
+          document.querySelector<HTMLElement>(`[data-swap-id="${ti}-${pi}"]`)?.getBoundingClientRect()
+      );
+
+      // Identify which index slots change content after sort
+      const dirtySlots = new Set<number>();
+      for (let pi = 0; pi < players.length; pi++) {
+        const newPi = sorted.findIndex((p) => p.name === players[pi].name);
+        if (newPi !== pi) {
+          dirtySlots.add(pi);
+          dirtySlots.add(newPi);
+        }
+      }
+
+      // Create a flying clone for each player that moves to a new slot
+      for (let pi = 0; pi < players.length; pi++) {
+        const newPi = sorted.findIndex((p) => p.name === players[pi].name);
+        if (newPi === pi) continue;
+
+        const el = document.querySelector<HTMLElement>(`[data-swap-id="${ti}-${pi}"]`);
+        const oldRect = slotRects[pi];
+        const destRect = slotRects[newPi];
+        if (!el || !oldRect || !destRect) continue;
+
+        const clone = el.cloneNode(true) as HTMLElement;
+        clone.setAttribute("data-swap-clone", "");
+        clone.removeAttribute("data-swap-id");
+        clone.style.cssText = `
+          position:fixed;top:${oldRect.top}px;left:${oldRect.left}px;
+          width:${oldRect.width}px;height:${oldRect.height}px;
+          margin:0;pointer-events:none;z-index:9998;border-radius:11px;
+        `;
+        document.body.appendChild(clone);
+        pendingClones.push({ clone, dx: destRect.left - oldRect.left, dy: destRect.top - oldRect.top });
+      }
+
+      // Hide dirty slots so the in-place React update is invisible until clones land
+      for (const pi of dirtySlots) {
+        const el = document.querySelector<HTMLElement>(`[data-swap-id="${ti}-${pi}"]`);
+        if (el) { el.style.opacity = "0"; elemsToReveal.push(el); }
+      }
+    }
+
+    // Commit the sort to React state
+    flushSync(() => {
+      setLocalTeams((prev) => {
+        if (!prev) return prev;
+        const next = [...prev];
+        for (const ti of teamIndices) {
+          next[ti] = { ...next[ti], players: [...next[ti].players].sort((a, b) => b.stars - a.stars) };
+        }
+        return next;
+      });
+    });
+
+    const finish = () => {
+      elemsToReveal.forEach((el) => { el.style.opacity = ""; });
+      pendingClones.forEach(({ clone }) => clone.remove());
+      isAnimatingRef.current = false;
+    };
+
+    if (pendingClones.length === 0) { finish(); return; }
+
+    const anims = pendingClones.map(({ clone, dx, dy }) =>
+      clone.animate(
+        [{ transform: "translate(0,0)" }, { transform: `translate(${dx}px,${dy}px)` }],
+        { duration: 300, easing: "ease-in-out" }
+      )
+    );
+
+    Promise.all(anims.map((a) => a.finished)).then(finish).catch(finish);
   }
 
   if (orphan) return null;
@@ -410,7 +509,7 @@ export default function DrawPage() {
           </h1>
           <div className="mt-[11px] flex gap-[7px]">
             <PrivBadge tone="draw">
-              <Trophy className="size-[11px]" /> {teamsQuantity} times
+              <Trophy className="size-[11px]" /> {localTeams?.length ?? teamsQuantity} times
             </PrivBadge>
             <PrivBadge tone={withPosition ? "manage" : "muted"}>
               {withPosition
@@ -477,8 +576,14 @@ export default function DrawPage() {
 
       {/* ações */}
       <div className="sticky bottom-0 z-40 border-t border-line-soft bg-[color-mix(in_oklch,var(--surface)_90%,transparent)] backdrop-blur-md">
-        {/* position toggle */}
-        <div className="flex items-center justify-center px-4 pt-2.5">
+        {/* controls row: team counter (left) + position toggle (right) */}
+        <div className="flex items-center justify-between gap-4 px-4 pt-2.5">
+          <div className="flex items-center gap-[9px]">
+            <span className="font-sans text-[0.6875rem] font-bold uppercase tracking-[0.1em] text-faint">
+              Times
+            </span>
+            <Stepper value={teamsQuantity} min={2} max={maxTeams} onChange={setTeamsQuantity} />
+          </div>
           <button
             type="button"
             onClick={() => setWithPosition((v) => !v)}
