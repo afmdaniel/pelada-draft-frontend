@@ -225,7 +225,8 @@ export default function DrawPage() {
     selectedIds,
   } = usePeladaDraft();
 
-  const maxTeams = Math.max(2, Math.floor(selectedIds.length / 2));
+  const maxTeams = Math.min(10, selectedIds.length);
+  const notEnoughPlayers = selectedIds.length < teamsQuantity;
 
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -614,33 +615,44 @@ export default function DrawPage() {
         </div>
 
         {/* buttons row */}
-        <div className="flex gap-2.5 px-4 pt-2 pb-3.5">
-          <button
-            type="button"
-            onClick={() => setShareOpen(true)}
-            disabled={!localTeams}
-            aria-label="Compartilhar"
-            className="grid h-[54px] w-14 shrink-0 place-items-center rounded-2xl border border-line bg-card-hi text-foreground transition active:scale-95 disabled:opacity-40"
-          >
-            <Share2 className="size-[21px]" />
-          </button>
-          <button
-            type="button"
-            onClick={runDraw}
-            disabled={draw.isPending}
-            className="flex h-[54px] flex-1 items-center justify-center gap-[9px] rounded-2xl transition active:scale-[0.98] disabled:opacity-60"
-            style={{
-              background:
-                "linear-gradient(120deg, var(--accent-color), var(--accent-press))",
-              color: "var(--accent-ink)",
-              boxShadow: "0 14px 30px -12px var(--accent-color)",
-            }}
-          >
-            <Shuffle className="size-[21px]" strokeWidth={2.2} />
-            <span className="font-display text-[1.0625rem] font-bold uppercase tracking-[0.02em] whitespace-nowrap">
-              {draw.isPending ? "Sorteando..." : "Refazer Sorteio"}
-            </span>
-          </button>
+        <div className="px-4 pt-2 pb-3.5">
+          <div className="flex gap-2.5">
+            <button
+              type="button"
+              onClick={() => setShareOpen(true)}
+              disabled={!localTeams}
+              aria-label="Compartilhar"
+              className="grid h-[54px] w-14 shrink-0 place-items-center rounded-2xl border border-line bg-card-hi text-foreground transition active:scale-95 disabled:opacity-40"
+            >
+              <Share2 className="size-[21px]" />
+            </button>
+            <button
+              type="button"
+              onClick={runDraw}
+              disabled={draw.isPending || notEnoughPlayers}
+              className="flex h-[54px] flex-1 items-center justify-center gap-[9px] rounded-2xl transition active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100"
+              style={
+                notEnoughPlayers && !draw.isPending
+                  ? { background: "var(--card-hi)", color: "var(--faint)", border: "1px solid var(--line)" }
+                  : {
+                      background:
+                        "linear-gradient(120deg, var(--accent-color), var(--accent-press))",
+                      color: "var(--accent-ink)",
+                      boxShadow: "0 14px 30px -12px var(--accent-color)",
+                    }
+              }
+            >
+              <Shuffle className="size-[21px]" strokeWidth={2.2} />
+              <span className="font-display text-[1.0625rem] font-bold uppercase tracking-[0.02em] whitespace-nowrap">
+                {draw.isPending ? "Sorteando..." : "Refazer Sorteio"}
+              </span>
+            </button>
+          </div>
+          {notEnoughPlayers && (
+            <p className="mt-2 text-center font-sans text-[0.6875rem] font-semibold text-danger">
+              Selecione pelo menos 1 jogador por time
+            </p>
+          )}
         </div>
       </div>
 

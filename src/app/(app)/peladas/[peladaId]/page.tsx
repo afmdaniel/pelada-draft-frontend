@@ -144,17 +144,11 @@ export default function PeladaPage() {
     });
   }
 
+  const notEnoughPlayers = canDraw && count < teamsQuantity;
+
   function handleDraw() {
     if (!canDraw) {
       toast.error("Você não tem permissão para sortear times.");
-      return;
-    }
-    if (count < 2) {
-      toast.error("Selecione ao menos 2 jogadores.");
-      return;
-    }
-    if (count < teamsQuantity) {
-      toast.error("Selecione ao menos um jogador por time.");
       return;
     }
     runDraw();
@@ -381,9 +375,10 @@ export default function PeladaPage() {
           <button
             type="button"
             onClick={handleDraw}
-            className="flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl transition active:scale-[0.98]"
+            disabled={notEnoughPlayers}
+            className="flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl transition active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100"
             style={
-              canDraw
+              canDraw && !notEnoughPlayers
                 ? {
                     background:
                       "linear-gradient(120deg, var(--accent-color), var(--accent-press))",
@@ -405,12 +400,17 @@ export default function PeladaPage() {
             <span className="font-display text-[1.0625rem] font-bold uppercase tracking-[0.02em] whitespace-nowrap">
               {canDraw ? "Realizar Sorteio" : "Sem permissão"}
             </span>
-            {canDraw && (
+            {canDraw && !notEnoughPlayers && (
               <span className="min-w-[26px] rounded-full bg-black/20 px-2 py-[3px] text-center font-sans text-[0.8125rem] font-bold shrink-0">
                 {count}
               </span>
             )}
           </button>
+          {notEnoughPlayers && (
+            <p className="mt-2 text-center font-sans text-[0.6875rem] font-semibold text-danger">
+              Selecione pelo menos 1 jogador por time
+            </p>
+          )}
         </div>
       </div>
 

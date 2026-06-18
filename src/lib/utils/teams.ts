@@ -15,7 +15,7 @@ export const TEAM_COLORS: TeamColor[] = [
   { name: "Preto", hex: "#222831", ink: "#eef3f8", glow: "rgba(120,140,170,0.28)" },
 ];
 
-export const MAX_TEAMS = TEAM_COLORS.length;
+export const MAX_TEAMS = 10;
 
 export function teamColor(index: number): TeamColor {
   return TEAM_COLORS[index % TEAM_COLORS.length];
