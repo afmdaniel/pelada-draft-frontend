@@ -309,19 +309,28 @@ export default function DrawPage() {
     const rect1 = el1.getBoundingClientRect();
     const rect2 = el2.getBoundingClientRect();
 
-    // Build fixed-position clones that sit exactly over the originals
+    // Build fixed-position clones that sit exactly over the originals.
+    // Use individual property assignments (not cssText) so the existing inline
+    // styles copied by cloneNode — background, etc. — are preserved.
+    // animation:none prevents animate-slide-in from restarting on the clone.
     const clone1 = el1.cloneNode(true) as HTMLElement;
     const clone2 = el2.cloneNode(true) as HTMLElement;
     for (const [clone, rect] of [[clone1, rect1], [clone2, rect2]] as const) {
       clone.setAttribute("data-swap-clone", "");
       clone.removeAttribute("data-swap-id");
-      clone.style.cssText = `
-        position:fixed;top:${rect.top}px;left:${rect.left}px;
-        width:${rect.width}px;height:${rect.height}px;
-        margin:0;padding-left:${getComputedStyle(el1).paddingLeft};
-        pointer-events:none;z-index:9999;
-        border-radius:11px;
-      `;
+      Object.assign(clone.style, {
+        position: "fixed",
+        top: `${rect.top}px`,
+        left: `${rect.left}px`,
+        width: `${rect.width}px`,
+        height: `${rect.height}px`,
+        margin: "0",
+        pointerEvents: "none",
+        zIndex: "9999",
+        borderRadius: "11px",
+        animation: "none",
+        transition: "none",
+      });
       document.body.appendChild(clone);
     }
 
@@ -432,11 +441,19 @@ export default function DrawPage() {
         const clone = el.cloneNode(true) as HTMLElement;
         clone.setAttribute("data-swap-clone", "");
         clone.removeAttribute("data-swap-id");
-        clone.style.cssText = `
-          position:fixed;top:${oldRect.top}px;left:${oldRect.left}px;
-          width:${oldRect.width}px;height:${oldRect.height}px;
-          margin:0;pointer-events:none;z-index:9998;border-radius:11px;
-        `;
+        Object.assign(clone.style, {
+          position: "fixed",
+          top: `${oldRect.top}px`,
+          left: `${oldRect.left}px`,
+          width: `${oldRect.width}px`,
+          height: `${oldRect.height}px`,
+          margin: "0",
+          pointerEvents: "none",
+          zIndex: "9998",
+          borderRadius: "11px",
+          animation: "none",
+          transition: "none",
+        });
         document.body.appendChild(clone);
         pendingClones.push({ clone, dx: destRect.left - oldRect.left, dy: destRect.top - oldRect.top });
       }
