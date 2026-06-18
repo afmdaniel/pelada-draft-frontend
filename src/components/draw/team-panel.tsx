@@ -17,17 +17,33 @@ function MiniPlayerRow({
   player,
   ink,
   index,
+  selected,
+  onClick,
 }: {
   player: DrawTeamPlayer;
   ink: string;
   index: number;
+  selected?: boolean;
+  onClick?: () => void;
 }) {
   const meta = POSITION_META[player.position];
   return (
     <div
-      className="flex items-center gap-[9px] rounded-[11px] border border-line-soft px-2.5 py-[7px] animate-slide-in"
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={onClick ? (e) => (e.key === "Enter" || e.key === " ") && onClick() : undefined}
+      className={[
+        "flex items-center gap-[9px] rounded-[11px] border px-2.5 py-[7px] animate-slide-in transition-all",
+        onClick ? "cursor-pointer active:scale-[0.97]" : "",
+        selected
+          ? "border-primary/60 shadow-[0_0_0_2px_var(--accent-soft)]"
+          : "border-line-soft",
+      ].join(" ")}
       style={{
-        background: `color-mix(in oklch, ${ink} 8%, var(--card))`,
+        background: selected
+          ? `color-mix(in oklch, var(--accent-color) 14%, var(--card))`
+          : `color-mix(in oklch, ${ink} 8%, var(--card))`,
         animationDelay: `${Math.min(index, 14) * 40}ms`,
       }}
     >
@@ -59,9 +75,18 @@ interface TeamPanelProps {
   color: TeamColor;
   startIndex: number;
   baseDelay: number;
+  selectedPlayerIndex?: number;
+  onPlayerSelect?: (playerIndex: number) => void;
 }
 
-export function TeamPanel({ team, color, startIndex, baseDelay }: TeamPanelProps) {
+export function TeamPanel({
+  team,
+  color,
+  startIndex,
+  baseDelay,
+  selectedPlayerIndex,
+  onPlayerSelect,
+}: TeamPanelProps) {
   const lightJersey = color.name === "Branco" || color.name === "Amarelo";
   return (
     <div
@@ -114,6 +139,8 @@ export function TeamPanel({ team, color, startIndex, baseDelay }: TeamPanelProps
             player={player}
             ink={color.hex}
             index={startIndex + index}
+            selected={selectedPlayerIndex === index}
+            onClick={onPlayerSelect ? () => onPlayerSelect(index) : undefined}
           />
         ))}
       </div>

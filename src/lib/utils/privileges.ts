@@ -2,7 +2,6 @@ import type { CurrentUser, PeladaSummary, Privilege } from "@/types/api";
 
 export function isOwner(pelada: PeladaSummary, user: CurrentUser | undefined) {
   if (!user) return false;
-  if (user.role === "ADMIN") return true;
   return pelada.ownerUsername === user.username;
 }
 

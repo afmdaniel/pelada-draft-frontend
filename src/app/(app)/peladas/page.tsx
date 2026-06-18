@@ -18,10 +18,12 @@ import type { PeladaSummary } from "@/types/api";
 function PeladaCard({
   pelada,
   owner,
+  isAdmin,
   index,
 }: {
   pelada: PeladaSummary;
   owner: boolean;
+  isAdmin: boolean;
   index: number;
 }) {
   return (
@@ -43,7 +45,7 @@ function PeladaCard({
           </div>
         </div>
         <div className="flex flex-wrap justify-end gap-[5px]">
-          <PrivBadges isOwner={owner} privileges={pelada.privileges} />
+          <PrivBadges isOwner={owner} isAdmin={isAdmin} privileges={pelada.privileges} />
         </div>
       </div>
 
@@ -188,6 +190,7 @@ export default function PeladasPage() {
               key={pelada.id}
               pelada={pelada}
               owner={isOwner(pelada, me)}
+              isAdmin={me?.role === "ADMIN" && !isOwner(pelada, me)}
               index={index}
             />
           ))}

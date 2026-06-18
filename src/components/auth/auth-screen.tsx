@@ -202,7 +202,7 @@ export function RegisterScreen() {
         <Field label="Username" error={errors.username?.message}>
           <TextField
             icon={User}
-            placeholder="comofica"
+            placeholder="Nome de usuário"
             autoComplete="username"
             invalid={!!errors.username}
             {...register("username")}

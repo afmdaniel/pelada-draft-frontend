@@ -1,7 +1,7 @@
 "use client";
 
 import { toPng } from "html-to-image";
-import { ImageDown, Share2, Shuffle, Trophy, Volleyball } from "lucide-react";
+import { Check, ImageDown, Share2, Shuffle, Trophy, Volleyball } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -210,22 +210,84 @@ function ShareSheet({
   );
 }
 
+type SwapSelection = { teamIndex: number; playerIndex: number };
+
 export default function DrawPage() {
   const { peladaId } = useParams<{ peladaId: string }>();
   const router = useRouter();
   const { data: pelada } = usePelada(peladaId);
-  const { draw, drawKey, runDraw, teamsQuantity, withPosition } =
+  const { draw, drawKey, runDraw, teamsQuantity, withPosition, setWithPosition } =
     usePeladaDraft();
 
   const [shareOpen, setShareOpen] = useState(false);
+
+  // Local mutable copy of teams for client-side swaps
+  const [localTeams, setLocalTeams] = useState<DrawTeam[] | null>(null);
+  const [swapSelection, setSwapSelection] = useState<SwapSelection | null>(null);
+  const [swapKeys, setSwapKeys] = useState<Record<number, number>>({});
+  const [showHint, setShowHint] = useState(false);
+
+  // Sync local teams whenever a new draw result arrives
+  useEffect(() => {
+    if (!draw.data) return;
+    setLocalTeams(draw.data.data.draw.map((t) => ({ ...t, players: [...t.players] })));
+    setSwapSelection(null);
+    setSwapKeys({});
+    setShowHint(true);
+  }, [drawKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Hide the swap hint after 5 seconds
+  useEffect(() => {
+    if (!showHint) return;
+    const t = setTimeout(() => setShowHint(false), 5000);
+    return () => clearTimeout(t);
+  }, [showHint]);
 
   const orphan = draw.isIdle && !draw.data;
   useEffect(() => {
     if (orphan) router.replace(`/peladas/${peladaId}`);
   }, [orphan, peladaId, router]);
 
-  const teams = draw.data?.data.draw;
   const peladaName = pelada?.name ?? "Pelada";
+
+  function handlePlayerSelect(teamIndex: number, playerIndex: number) {
+    if (!swapSelection) {
+      setSwapSelection({ teamIndex, playerIndex });
+      return;
+    }
+    // Same player tapped — deselect
+    if (swapSelection.teamIndex === teamIndex && swapSelection.playerIndex === playerIndex) {
+      setSwapSelection(null);
+      return;
+    }
+    // Same team, different player — re-select
+    if (swapSelection.teamIndex === teamIndex) {
+      setSwapSelection({ teamIndex, playerIndex });
+      return;
+    }
+    // Different team — execute swap
+    setLocalTeams((prev) => {
+      if (!prev) return prev;
+      const next = prev.map((t) => ({ ...t, players: [...t.players] }));
+      const p1 = next[swapSelection.teamIndex].players[swapSelection.playerIndex];
+      const p2 = next[teamIndex].players[playerIndex];
+      next[swapSelection.teamIndex].players[swapSelection.playerIndex] = p2;
+      next[teamIndex].players[playerIndex] = p1;
+      next[swapSelection.teamIndex].totalStars = next[swapSelection.teamIndex].players.reduce(
+        (s, p) => s + p.stars,
+        0
+      );
+      next[teamIndex].totalStars = next[teamIndex].players.reduce((s, p) => s + p.stars, 0);
+      return next;
+    });
+    setSwapKeys((prev) => ({
+      ...prev,
+      [swapSelection.teamIndex]: (prev[swapSelection.teamIndex] ?? 0) + 1,
+      [teamIndex]: (prev[teamIndex] ?? 0) + 1,
+    }));
+    setSwapSelection(null);
+    setShowHint(false);
+  }
 
   if (orphan) return null;
 
@@ -235,7 +297,7 @@ export default function DrawPage() {
         title="Sorteio"
         onBack={() => router.push(`/peladas/${peladaId}`)}
         right={
-          teams && (
+          localTeams && (
             <button
               type="button"
               onClick={() => setShareOpen(true)}
@@ -292,62 +354,107 @@ export default function DrawPage() {
           </div>
         )}
 
-        {teams && !draw.isPending && (
-          <div
-            key={drawKey}
-            className="grid grid-cols-1 gap-[13px] sm:grid-cols-2 xl:grid-cols-3"
-          >
-            {teams.map((team, index) => (
-              <TeamPanel
-                key={index}
-                team={team}
-                color={teamColor(index)}
-                startIndex={teams
-                  .slice(0, index)
-                  .reduce((sum, t) => sum + t.players.length, 0)}
-                baseDelay={index * 90}
-              />
-            ))}
-          </div>
+        {localTeams && !draw.isPending && (
+          <>
+            {showHint && (
+              <p className="mb-3 text-center font-sans text-[0.75rem] text-faint animate-fade-up">
+                Toque em um jogador para trocar entre times
+              </p>
+            )}
+            <div
+              key={drawKey}
+              className="grid grid-cols-1 gap-[13px] sm:grid-cols-2 xl:grid-cols-3"
+            >
+              {localTeams.map((team, index) => (
+                <TeamPanel
+                  key={`${index}-${swapKeys[index] ?? 0}`}
+                  team={team}
+                  color={teamColor(index)}
+                  startIndex={localTeams
+                    .slice(0, index)
+                    .reduce((sum, t) => sum + t.players.length, 0)}
+                  baseDelay={index * 90}
+                  selectedPlayerIndex={
+                    swapSelection?.teamIndex === index ? swapSelection.playerIndex : undefined
+                  }
+                  onPlayerSelect={(playerIndex) => handlePlayerSelect(index, playerIndex)}
+                />
+              ))}
+            </div>
+          </>
         )}
       </div>
 
       {/* ações */}
-      <div className="sticky bottom-0 z-40 flex gap-2.5 border-t border-line-soft bg-[color-mix(in_oklch,var(--surface)_90%,transparent)] px-4 pt-3 pb-3.5 backdrop-blur-md">
-        <button
-          type="button"
-          onClick={() => setShareOpen(true)}
-          disabled={!teams}
-          aria-label="Compartilhar"
-          className="grid h-[54px] w-14 shrink-0 place-items-center rounded-2xl border border-line bg-card-hi text-foreground transition active:scale-95 disabled:opacity-40"
-        >
-          <Share2 className="size-[21px]" />
-        </button>
-        <button
-          type="button"
-          onClick={runDraw}
-          disabled={draw.isPending}
-          className="flex h-[54px] flex-1 items-center justify-center gap-[9px] rounded-2xl transition active:scale-[0.98] disabled:opacity-60"
-          style={{
-            background:
-              "linear-gradient(120deg, var(--accent-color), var(--accent-press))",
-            color: "var(--accent-ink)",
-            boxShadow: "0 14px 30px -12px var(--accent-color)",
-          }}
-        >
-          <Shuffle className="size-[21px]" strokeWidth={2.2} />
-          <span className="font-display text-[1.0625rem] font-bold uppercase tracking-[0.02em] whitespace-nowrap">
-            {draw.isPending ? "Sorteando..." : "Refazer Sorteio"}
-          </span>
-        </button>
+      <div className="sticky bottom-0 z-40 border-t border-line-soft bg-[color-mix(in_oklch,var(--surface)_90%,transparent)] backdrop-blur-md">
+        {/* position toggle */}
+        <div className="flex items-center justify-center px-4 pt-2.5">
+          <button
+            type="button"
+            onClick={() => setWithPosition((v) => !v)}
+            className={`flex items-center gap-[7px] rounded-[10px] px-3 py-2 transition active:scale-95 ${
+              withPosition
+                ? "border border-transparent bg-accent-soft"
+                : "border border-line-soft bg-card-hi"
+            }`}
+          >
+            <span
+              className="grid size-4 place-items-center rounded-[5px]"
+              style={{
+                background: withPosition ? "var(--accent-color)" : "transparent",
+                border: `1.5px solid ${withPosition ? "var(--accent-color)" : "var(--line)"}`,
+                color: "var(--accent-ink)",
+              }}
+            >
+              {withPosition && <Check className="size-[11px]" strokeWidth={3} />}
+            </span>
+            <span
+              className={`font-sans text-xs font-bold ${
+                withPosition ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              Equilibrar posição
+            </span>
+          </button>
+        </div>
+
+        {/* buttons row */}
+        <div className="flex gap-2.5 px-4 pt-2 pb-3.5">
+          <button
+            type="button"
+            onClick={() => setShareOpen(true)}
+            disabled={!localTeams}
+            aria-label="Compartilhar"
+            className="grid h-[54px] w-14 shrink-0 place-items-center rounded-2xl border border-line bg-card-hi text-foreground transition active:scale-95 disabled:opacity-40"
+          >
+            <Share2 className="size-[21px]" />
+          </button>
+          <button
+            type="button"
+            onClick={runDraw}
+            disabled={draw.isPending}
+            className="flex h-[54px] flex-1 items-center justify-center gap-[9px] rounded-2xl transition active:scale-[0.98] disabled:opacity-60"
+            style={{
+              background:
+                "linear-gradient(120deg, var(--accent-color), var(--accent-press))",
+              color: "var(--accent-ink)",
+              boxShadow: "0 14px 30px -12px var(--accent-color)",
+            }}
+          >
+            <Shuffle className="size-[21px]" strokeWidth={2.2} />
+            <span className="font-display text-[1.0625rem] font-bold uppercase tracking-[0.02em] whitespace-nowrap">
+              {draw.isPending ? "Sorteando..." : "Refazer Sorteio"}
+            </span>
+          </button>
+        </div>
       </div>
 
-      {teams && (
+      {localTeams && (
         <ShareSheet
           open={shareOpen}
           onOpenChange={setShareOpen}
           peladaName={peladaName}
-          teams={teams}
+          teams={localTeams}
         />
       )}
     </div>

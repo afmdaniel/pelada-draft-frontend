@@ -1,4 +1,4 @@
-import { Crown } from "lucide-react";
+import { Crown, Shield } from "lucide-react";
 
 import type { Privilege } from "@/types/api";
 
@@ -37,14 +37,23 @@ export function PrivBadge({
 export function PrivBadges({
   isOwner,
   privileges,
+  isAdmin,
 }: {
   isOwner: boolean;
   privileges: Privilege[];
+  isAdmin?: boolean;
 }) {
   if (isOwner) {
     return (
       <PrivBadge tone="owner">
         <Crown className="size-[11px]" strokeWidth={2.4} /> Dono
+      </PrivBadge>
+    );
+  }
+  if (isAdmin) {
+    return (
+      <PrivBadge tone="owner">
+        <Shield className="size-[11px]" strokeWidth={2.4} /> Admin
       </PrivBadge>
     );
   }

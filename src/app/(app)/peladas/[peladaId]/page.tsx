@@ -101,6 +101,8 @@ export default function PeladaPage() {
   }
 
   const owner = isOwner(pelada, me);
+  const isAdmin = me?.role === "ADMIN";
+  const canOwnerActions = owner || isAdmin;
   const canManage = hasPrivilege(pelada, "MANAGE_PLAYERS", me);
   const canDraw = hasPrivilege(pelada, "DRAW_TEAMS", me);
   const players = playersData ?? [];
@@ -208,7 +210,7 @@ export default function PeladaPage() {
                 Suas permissões
               </div>
               <div className="flex flex-wrap gap-1.5">
-                <PrivBadges isOwner={owner} privileges={pelada.privileges} />
+                <PrivBadges isOwner={owner} isAdmin={isAdmin} privileges={pelada.privileges} />
               </div>
             </div>
           </div>
@@ -218,15 +220,15 @@ export default function PeladaPage() {
             <ActionTile
               icon={Pencil}
               label="Editar nome"
-              locked={!owner}
-              onClick={owner ? () => setEditNameOpen(true) : lockMsg}
+              locked={!canOwnerActions}
+              onClick={canOwnerActions ? () => setEditNameOpen(true) : lockMsg}
             />
             <ActionTile
               icon={Shield}
               label="Permissões"
-              locked={!owner}
+              locked={!canOwnerActions}
               onClick={
-                owner
+                canOwnerActions
                   ? () => router.push(`/peladas/${peladaId}/permissions`)
                   : lockMsg
               }
@@ -235,8 +237,8 @@ export default function PeladaPage() {
               icon={Trash2}
               label="Excluir"
               danger
-              locked={!owner}
-              onClick={owner ? () => setDeleteOpen(true) : lockMsg}
+              locked={!canOwnerActions}
+              onClick={canOwnerActions ? () => setDeleteOpen(true) : lockMsg}
             />
           </div>
 
@@ -379,7 +381,7 @@ export default function PeladaPage() {
           <button
             type="button"
             onClick={handleDraw}
-            className="relative flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl transition active:scale-[0.98]"
+            className="flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl transition active:scale-[0.98]"
             style={
               canDraw
                 ? {
@@ -404,7 +406,7 @@ export default function PeladaPage() {
               {canDraw ? "Realizar Sorteio" : "Sem permissão"}
             </span>
             {canDraw && (
-              <span className="absolute top-1/2 right-3 min-w-[26px] -translate-y-1/2 rounded-full bg-black/20 px-2 py-[3px] text-center font-sans text-[0.8125rem] font-bold">
+              <span className="min-w-[26px] rounded-full bg-black/20 px-2 py-[3px] text-center font-sans text-[0.8125rem] font-bold shrink-0">
                 {count}
               </span>
             )}
