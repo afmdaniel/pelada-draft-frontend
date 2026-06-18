@@ -4,6 +4,7 @@ import { toPng } from "html-to-image";
 import { Check, ImageDown, Share2, Shuffle, Trophy, Volleyball } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { toast } from "sonner";
 
 import { TeamPanel } from "@/components/draw/team-panel";
@@ -224,16 +225,16 @@ export default function DrawPage() {
   // Local mutable copy of teams for client-side swaps
   const [localTeams, setLocalTeams] = useState<DrawTeam[] | null>(null);
   const [swapSelection, setSwapSelection] = useState<SwapSelection | null>(null);
-  const [swapKeys, setSwapKeys] = useState<Record<number, number>>({});
   const [showHint, setShowHint] = useState(false);
+  const isAnimatingRef = useRef(false);
 
   // Sync local teams whenever a new draw result arrives
   useEffect(() => {
     if (!draw.data) return;
     setLocalTeams(draw.data.data.draw.map((t) => ({ ...t, players: [...t.players] })));
     setSwapSelection(null);
-    setSwapKeys({});
     setShowHint(true);
+    isAnimatingRef.current = false;
   }, [drawKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Hide the swap hint after 5 seconds
@@ -243,6 +244,13 @@ export default function DrawPage() {
     return () => clearTimeout(t);
   }, [showHint]);
 
+  // Clean up any dangling clones if the component unmounts mid-animation
+  useEffect(() => {
+    return () => {
+      document.querySelectorAll("[data-swap-clone]").forEach((el) => el.remove());
+    };
+  }, []);
+
   const orphan = draw.isIdle && !draw.data;
   useEffect(() => {
     if (orphan) router.replace(`/peladas/${peladaId}`);
@@ -251,6 +259,8 @@ export default function DrawPage() {
   const peladaName = pelada?.name ?? "Pelada";
 
   function handlePlayerSelect(teamIndex: number, playerIndex: number) {
+    if (isAnimatingRef.current) return;
+
     if (!swapSelection) {
       setSwapSelection({ teamIndex, playerIndex });
       return;
@@ -265,28 +275,107 @@ export default function DrawPage() {
       setSwapSelection({ teamIndex, playerIndex });
       return;
     }
-    // Different team — execute swap
-    setLocalTeams((prev) => {
-      if (!prev) return prev;
-      const next = prev.map((t) => ({ ...t, players: [...t.players] }));
-      const p1 = next[swapSelection.teamIndex].players[swapSelection.playerIndex];
-      const p2 = next[teamIndex].players[playerIndex];
-      next[swapSelection.teamIndex].players[swapSelection.playerIndex] = p2;
-      next[teamIndex].players[playerIndex] = p1;
-      next[swapSelection.teamIndex].totalStars = next[swapSelection.teamIndex].players.reduce(
-        (s, p) => s + p.stars,
-        0
-      );
-      next[teamIndex].totalStars = next[teamIndex].players.reduce((s, p) => s + p.stars, 0);
-      return next;
+
+    // ── Different team: FLIP clone animation ──────────────────────────────
+    const sel = swapSelection;
+    const el1 = document.querySelector<HTMLElement>(
+      `[data-swap-id="${sel.teamIndex}-${sel.playerIndex}"]`
+    );
+    const el2 = document.querySelector<HTMLElement>(
+      `[data-swap-id="${teamIndex}-${playerIndex}"]`
+    );
+
+    if (!el1 || !el2) {
+      // Fallback: instant swap with no animation
+      flushSync(() => {
+        setLocalTeams((prev) => applySwap(prev, sel, teamIndex, playerIndex));
+        setSwapSelection(null);
+        setShowHint(false);
+      });
+      return;
+    }
+
+    isAnimatingRef.current = true;
+
+    // FIRST — capture starting positions
+    const rect1 = el1.getBoundingClientRect();
+    const rect2 = el2.getBoundingClientRect();
+
+    // Build fixed-position clones that sit exactly over the originals
+    const clone1 = el1.cloneNode(true) as HTMLElement;
+    const clone2 = el2.cloneNode(true) as HTMLElement;
+    for (const [clone, rect] of [[clone1, rect1], [clone2, rect2]] as const) {
+      clone.setAttribute("data-swap-clone", "");
+      clone.removeAttribute("data-swap-id");
+      clone.style.cssText = `
+        position:fixed;top:${rect.top}px;left:${rect.left}px;
+        width:${rect.width}px;height:${rect.height}px;
+        margin:0;padding-left:${getComputedStyle(el1).paddingLeft};
+        pointer-events:none;z-index:9999;
+        border-radius:11px;
+      `;
+      document.body.appendChild(clone);
+    }
+
+    // Hide originals so DOM update is invisible
+    el1.style.opacity = "0";
+    el2.style.opacity = "0";
+
+    // LAST — synchronously update the DOM (cards now show new content, still hidden)
+    flushSync(() => {
+      setLocalTeams((prev) => applySwap(prev, sel, teamIndex, playerIndex));
+      setSwapSelection(null);
+      setShowHint(false);
     });
-    setSwapKeys((prev) => ({
-      ...prev,
-      [swapSelection.teamIndex]: (prev[swapSelection.teamIndex] ?? 0) + 1,
-      [teamIndex]: (prev[teamIndex] ?? 0) + 1,
-    }));
-    setSwapSelection(null);
-    setShowHint(false);
+
+    // INVERT+PLAY — animate clones from old positions to destinations
+    const dx = rect2.left - rect1.left;
+    const dy = rect2.top - rect1.top;
+    const opts: KeyframeAnimationOptions = { duration: 420, easing: "ease-in-out" };
+
+    const anim1 = clone1.animate(
+      [{ transform: "translate(0,0)" }, { transform: `translate(${dx}px,${dy}px)` }],
+      opts
+    );
+    const anim2 = clone2.animate(
+      [{ transform: "translate(0,0)" }, { transform: `translate(${-dx}px,${-dy}px)` }],
+      opts
+    );
+
+    const cleanup = () => {
+      el1.style.opacity = "";
+      el2.style.opacity = "";
+      clone1.remove();
+      clone2.remove();
+      // Re-sort players by stars descending after animation ends
+      setLocalTeams((prev) => {
+        if (!prev) return prev;
+        return prev.map((t) => ({
+          ...t,
+          players: [...t.players].sort((a, b) => b.stars - a.stars),
+        }));
+      });
+      isAnimatingRef.current = false;
+    };
+
+    Promise.all([anim1.finished, anim2.finished]).then(cleanup).catch(cleanup);
+  }
+
+  function applySwap(
+    prev: DrawTeam[] | null,
+    sel: SwapSelection,
+    teamIndex: number,
+    playerIndex: number
+  ): DrawTeam[] | null {
+    if (!prev) return prev;
+    const next = prev.map((t) => ({ ...t, players: [...t.players] }));
+    const p1 = next[sel.teamIndex].players[sel.playerIndex];
+    const p2 = next[teamIndex].players[playerIndex];
+    next[sel.teamIndex].players[sel.playerIndex] = p2;
+    next[teamIndex].players[playerIndex] = p1;
+    next[sel.teamIndex].totalStars = next[sel.teamIndex].players.reduce((s, p) => s + p.stars, 0);
+    next[teamIndex].totalStars = next[teamIndex].players.reduce((s, p) => s + p.stars, 0);
+    return next;
   }
 
   if (orphan) return null;
@@ -367,9 +456,10 @@ export default function DrawPage() {
             >
               {localTeams.map((team, index) => (
                 <TeamPanel
-                  key={`${index}-${swapKeys[index] ?? 0}`}
+                  key={index}
                   team={team}
                   color={teamColor(index)}
+                  teamIndex={index}
                   startIndex={localTeams
                     .slice(0, index)
                     .reduce((sum, t) => sum + t.players.length, 0)}

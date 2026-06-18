@@ -17,24 +17,27 @@ function MiniPlayerRow({
   player,
   ink,
   index,
+  swapId,
   selected,
   onClick,
 }: {
   player: DrawTeamPlayer;
   ink: string;
   index: number;
+  swapId: string;
   selected?: boolean;
   onClick?: () => void;
 }) {
   const meta = POSITION_META[player.position];
   return (
     <div
+      data-swap-id={swapId}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
       onClick={onClick}
       onKeyDown={onClick ? (e) => (e.key === "Enter" || e.key === " ") && onClick() : undefined}
       className={[
-        "flex items-center gap-[9px] rounded-[11px] border px-2.5 py-[7px] animate-slide-in transition-all",
+        "flex items-center gap-[9px] rounded-[11px] border px-2.5 py-[7px] animate-slide-in transition-[background,border,box-shadow]",
         onClick ? "cursor-pointer active:scale-[0.97]" : "",
         selected
           ? "border-primary/60 shadow-[0_0_0_2px_var(--accent-soft)]"
@@ -73,6 +76,7 @@ function MiniPlayerRow({
 interface TeamPanelProps {
   team: DrawTeam;
   color: TeamColor;
+  teamIndex: number;
   startIndex: number;
   baseDelay: number;
   selectedPlayerIndex?: number;
@@ -82,6 +86,7 @@ interface TeamPanelProps {
 export function TeamPanel({
   team,
   color,
+  teamIndex,
   startIndex,
   baseDelay,
   selectedPlayerIndex,
@@ -135,10 +140,12 @@ export function TeamPanel({
       <div className="flex flex-col gap-[7px] p-2.5">
         {team.players.map((player, index) => (
           <MiniPlayerRow
-            key={`${player.name}-${index}`}
+            // stable position-based key so React reuses DOM nodes on content swap
+            key={index}
             player={player}
             ink={color.hex}
             index={startIndex + index}
+            swapId={`${teamIndex}-${index}`}
             selected={selectedPlayerIndex === index}
             onClick={onPlayerSelect ? () => onPlayerSelect(index) : undefined}
           />
