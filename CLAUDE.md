@@ -201,3 +201,30 @@ response types, and validation rules.
 - Badge do hero exibe `localTeams.length` (número real do sorteio atual) em vez de `teamsQuantity` (alvo do próximo sorteio)
 
 **No pending items.**
+
+### Session — 2026-06-18 (continuação)
+
+**Implemented:**
+
+- **Validação de quantidade de times (`MAX_TEAMS = 10`):**
+  - `src/lib/utils/teams.ts`: `MAX_TEAMS` atualizado para 10 (desacoplado de `TEAM_COLORS.length`)
+  - Tela de setup: botão "Realizar Sorteio" desabilitado com mensagem inline `"Selecione pelo menos 1 jogador por time"` quando `count < teamsQuantity`; toasts de validação de contagem removidos
+  - Tela de resultado: limite superior do Stepper = `min(10, selectedIds.length)`; botão "Refazer Sorteio" desabilitado com a mesma mensagem inline quando `selectedIds.length < teamsQuantity`
+
+- **4 novas cores de time (`src/lib/utils/teams.ts`):**
+  - Laranja `#F97316` (ink escuro `#1c0500`), Roxo `#9333EA` (ink branco), Cinza `#6B7280` (ink branco), Rosa `#EC4899` (ink branco)
+  - `TEAM_COLORS` agora tem 10 entradas — sem repetição de cor para sorteios com até 10 times
+
+- **Fix animação de reordenação (`draw/page.tsx`):**
+  - Bug: `clone.style.cssText = "..."` substituía todos os inline styles do clone, removendo o `background` definido pelo React e deixando os clones transparentes
+  - Bug adicional: `cloneNode(true)` copiava a classe `animate-slide-in`, que ao ser reinserida no DOM disparava `slideIn` com `opacity: 0` — tornando o clone completamente invisível durante a animação FLIP
+  - Fix: `Object.assign(clone.style, { ... })` preserva os inline styles existentes e adiciona `animation: "none"` + `transition: "none"` para suprimir o `slideIn`
+  - Aplicado em ambos os sites de clone: swap (z-index 9999) e reorder (z-index 9998)
+
+**Key decisions:**
+
+- `MAX_TEAMS = 10` decoupled from `TEAM_COLORS.length` — as cores são suficientes para não repetir até o hard cap
+- Inline validation (not toast) is the right UX for the player count constraint — the user can see immediately what needs to change
+- `Object.assign` vs `cssText`: `cssText` replaces the entire `style` attribute, destroying React-managed inline styles; individual property assignment is the correct pattern for overlaying styles on a cloned node
+
+**No pending items.**
