@@ -228,3 +228,18 @@ response types, and validation rules.
 - `Object.assign` vs `cssText`: `cssText` replaces the entire `style` attribute, destroying React-managed inline styles; individual property assignment is the correct pattern for overlaying styles on a cloned node
 
 **No pending items.**
+
+### Session — 2026-06-19
+
+**Implemented:**
+
+- **Fix z-index dos clones de animação FLIP (`draw/page.tsx`):**
+  - Bug: clones de swap (`zIndex: "9999"`) e reorder (`zIndex: "9998"`) ficavam acima da sticky action bar (`z-40` = 40) e de toda a UI fixa durante as animações
+  - Fix: swap clones `9999 → 30`, reorder clones `9998 → 29` — acima dos team panels (sem z-index explícito) mas abaixo de toda UI fixa (action bar, sidebar, TopNav = z-40)
+
+**Key decisions:**
+
+- Hierarquia z-index da app: BottomSheet (z-50) > UI fixa/sticky (z-40) > clones de animação (30/29) > team panels (auto)
+- Lowering clone z-indexes is cleaner than raising the action bar above 9999 — clones only need to float above content panels, not above chrome
+
+**No pending items.**
