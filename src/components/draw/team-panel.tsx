@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { Pencil, Star } from "lucide-react";
 
 import { StarRow } from "@/components/players/star-row";
 import { POSITION_META } from "@/lib/utils/positions";
@@ -76,21 +76,25 @@ function MiniPlayerRow({
 interface TeamPanelProps {
   team: DrawTeam;
   color: TeamColor;
+  name: string;
   teamIndex: number;
   startIndex: number;
   baseDelay: number;
   selectedPlayerIndex?: number;
   onPlayerSelect?: (playerIndex: number) => void;
+  onEdit?: () => void;
 }
 
 export function TeamPanel({
   team,
   color,
+  name,
   teamIndex,
   startIndex,
   baseDelay,
   selectedPlayerIndex,
   onPlayerSelect,
+  onEdit,
 }: TeamPanelProps) {
   const lightJersey = color.name === "Branco" || color.name === "Amarelo";
   return (
@@ -114,17 +118,27 @@ export function TeamPanel({
         >
           <Jersey color={color.ink} size={24} />
         </span>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <div
-            className="font-display text-lg leading-none font-bold uppercase tracking-[0.02em]"
+            className="truncate font-display text-lg leading-none font-bold uppercase tracking-[0.02em]"
             style={{ color: lightJersey ? color.hex : "var(--text)" }}
           >
-            Time {color.name}
+            {name}
           </div>
           <div className="mt-0.5 font-sans text-[11.5px] font-semibold text-faint">
             {team.players.length} jogadores
           </div>
         </div>
+        {onEdit && (
+          <button
+            type="button"
+            aria-label="Editar time"
+            onClick={onEdit}
+            className="-m-1.5 p-1.5 text-faint transition active:scale-90 hover:text-foreground"
+          >
+            <Pencil className="size-4" />
+          </button>
+        )}
         <div className="text-right">
           <div className="flex items-center justify-end gap-1">
             <Star className="size-3.5 fill-gold text-gold" strokeWidth={0.6} />

@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { toast } from "sonner";
 
+import { TeamEditSheet } from "@/components/draw/team-edit-sheet";
 import { TeamPanel } from "@/components/draw/team-panel";
 import { usePeladaDraft } from "@/components/peladas/pelada-draft-context";
 import { StarRow } from "@/components/players/star-row";
@@ -18,15 +19,19 @@ import { TopBar } from "@/components/shared/top-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getApiErrorMessage } from "@/lib/api/axios";
 import { usePelada } from "@/lib/hooks/use-peladas";
+import { useTeamPreferences } from "@/lib/hooks/use-team-preferences";
 import { POSITION_META } from "@/lib/utils/positions";
-import { teamColor } from "@/lib/utils/teams";
+import type { TeamColor } from "@/lib/utils/teams";
 import type { DrawTeam } from "@/types/api";
 
-function teamsAsText(peladaName: string, teams: DrawTeam[]): string {
+function teamsAsText(
+  peladaName: string,
+  teams: DrawTeam[],
+  getTeamName: (i: number) => string,
+): string {
   const lines = [`⚽ ${peladaName} — times sorteados:`, ""];
   teams.forEach((team, index) => {
-    const color = teamColor(index);
-    lines.push(`*Time ${color.name}* (★${team.totalStars})`);
+    lines.push(`*${getTeamName(index)}* (★${team.totalStars})`);
     team.players.forEach((player) => {
       lines.push(`- ${player.name} (${POSITION_META[player.position].short} ★${player.stars})`);
     });
@@ -41,11 +46,15 @@ function ShareSheet({
   onOpenChange,
   peladaName,
   teams,
+  getTeamName,
+  getTeamColor,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   peladaName: string;
   teams: DrawTeam[];
+  getTeamName: (i: number) => string;
+  getTeamColor: (i: number) => TeamColor;
 }) {
   const previewRef = useRef<HTMLDivElement>(null);
   const date = new Date().toLocaleDateString("pt-BR", {
@@ -55,7 +64,7 @@ function ShareSheet({
 
   async function copy() {
     try {
-      await navigator.clipboard.writeText(teamsAsText(peladaName, teams));
+      await navigator.clipboard.writeText(teamsAsText(peladaName, teams, getTeamName));
       toast.success("Times copiados para a área de transferência.");
     } catch {
       toast.error("Não foi possível copiar os times.");
@@ -64,7 +73,7 @@ function ShareSheet({
 
   function shareWhatsApp() {
     const url = `https://wa.me/?text=${encodeURIComponent(
-      teamsAsText(peladaName, teams)
+      teamsAsText(peladaName, teams, getTeamName)
     )}`;
     window.open(url, "_blank", "noopener,noreferrer");
   }
@@ -161,7 +170,7 @@ function ShareSheet({
 
         <div className="relative mt-3.5 grid grid-cols-2 gap-2">
           {teams.map((team, index) => {
-            const color = teamColor(index);
+            const color = getTeamColor(index);
             return (
               <div
                 key={index}
@@ -170,10 +179,10 @@ function ShareSheet({
               >
                 <div className="mb-1.5 flex items-center justify-between">
                   <span
-                    className="font-display text-xs font-bold uppercase"
+                    className="font-display text-xs font-bold uppercase truncate"
                     style={{ color: color.hex }}
                   >
-                    {color.name}
+                    {getTeamName(index)}
                   </span>
                   <span className="font-display text-xs font-bold text-white/85">
                     ★{team.totalStars}
@@ -224,11 +233,13 @@ export default function DrawPage() {
     withPosition, setWithPosition,
     selectedIds,
   } = usePeladaDraft();
+  const { getTeamName, getTeamColor, setTeamPref, prefs } = useTeamPreferences();
 
   const maxTeams = Math.min(10, selectedIds.length);
   const notEnoughPlayers = selectedIds.length < teamsQuantity;
 
   const [shareOpen, setShareOpen] = useState(false);
+  const [editingTeamIndex, setEditingTeamIndex] = useState<number | null>(null);
 
   // Local mutable copy of teams for client-side swaps
   const [localTeams, setLocalTeams] = useState<DrawTeam[] | null>(null);
@@ -575,7 +586,8 @@ export default function DrawPage() {
                 <TeamPanel
                   key={index}
                   team={team}
-                  color={teamColor(index)}
+                  color={getTeamColor(index)}
+                  name={getTeamName(index)}
                   teamIndex={index}
                   startIndex={localTeams
                     .slice(0, index)
@@ -585,6 +597,7 @@ export default function DrawPage() {
                     swapSelection?.teamIndex === index ? swapSelection.playerIndex : undefined
                   }
                   onPlayerSelect={(playerIndex) => handlePlayerSelect(index, playerIndex)}
+                  onEdit={() => setEditingTeamIndex(index)}
                 />
               ))}
             </div>
@@ -679,6 +692,18 @@ export default function DrawPage() {
           onOpenChange={setShareOpen}
           peladaName={peladaName}
           teams={localTeams}
+          getTeamName={getTeamName}
+          getTeamColor={getTeamColor}
+        />
+      )}
+
+      {editingTeamIndex !== null && (
+        <TeamEditSheet
+          open
+          onOpenChange={(open) => { if (!open) setEditingTeamIndex(null); }}
+          currentName={prefs[editingTeamIndex]?.name ?? ""}
+          currentColorIndex={prefs[editingTeamIndex]?.colorIndex ?? editingTeamIndex}
+          onSave={(name, colorIndex) => setTeamPref(editingTeamIndex, { name, colorIndex })}
         />
       )}
     </div>
