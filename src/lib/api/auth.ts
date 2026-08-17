@@ -3,8 +3,10 @@ import type {
   ApiResponse,
   ChangePasswordPayload,
   CurrentUser,
+  ForgotPasswordPayload,
   LoginPayload,
   RegisterPayload,
+  ResetPasswordPayload,
 } from "@/types/api";
 
 export async function register(payload: RegisterPayload) {
@@ -34,5 +36,15 @@ export async function changePassword(payload: ChangePasswordPayload) {
 
 export async function logout() {
   const { data } = await api.post<ApiResponse>("/auth/logout");
+  return data;
+}
+
+export async function forgotPassword(payload: ForgotPasswordPayload) {
+  const { data } = await api.post<ApiResponse>("/auth/forgot-password", payload);
+  return data;
+}
+
+export async function resetPassword(payload: ResetPasswordPayload) {
+  const { data } = await api.post<ApiResponse>("/auth/reset-password", payload);
   return data;
 }

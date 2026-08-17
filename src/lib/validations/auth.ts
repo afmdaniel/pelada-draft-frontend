@@ -39,3 +39,21 @@ export const changePasswordSchema = z
   });
 
 export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
+
+export const forgotPasswordSchema = z.object({
+  email: z.email("Informe um e-mail válido"),
+});
+
+export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = z
+  .object({
+    newPassword: z.string().min(6, "A nova senha deve ter no mínimo 6 caracteres"),
+    newPasswordConfirmation: z.string().min(1, "Confirme a nova senha"),
+  })
+  .refine((v) => v.newPassword === v.newPasswordConfirmation, {
+    message: "As senhas não conferem",
+    path: ["newPasswordConfirmation"],
+  });
+
+export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;

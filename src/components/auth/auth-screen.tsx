@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { User, Volleyball } from "lucide-react";
+import { Mail, User, Volleyball } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -9,12 +9,16 @@ import { useForm } from "react-hook-form";
 import { AppButton } from "@/components/shared/app-button";
 import { Field, PasswordTextField, TextField } from "@/components/shared/field";
 import { TermsModal } from "@/components/shared/terms-modal";
-import { useLogin, useRegister } from "@/lib/hooks/use-auth";
+import { useForgotPassword, useLogin, useRegister, useResetPassword } from "@/lib/hooks/use-auth";
 import {
+  forgotPasswordSchema,
   loginSchema,
   registerSchema,
+  resetPasswordSchema,
+  type ForgotPasswordFormValues,
   type LoginFormValues,
   type RegisterFormValues,
+  type ResetPasswordFormValues,
 } from "@/lib/validations/auth";
 
 function Logo() {
@@ -141,11 +145,18 @@ export function LoginScreen({ redirectTo }: { redirectTo?: string }) {
             {...register("password")}
           />
         </Field>
+        <div className="mb-4 text-right">
+          <Link
+            href="/forgot-password"
+            className="font-sans text-[0.8rem] font-semibold text-primary"
+          >
+            Esqueci minha senha
+          </Link>
+        </div>
         <AppButton
           type="submit"
           full
           size="lg"
-          className="mt-1"
           disabled={loginMutation.isPending}
         >
           {loginMutation.isPending ? "Entrando..." : "Entrar"}
@@ -162,6 +173,158 @@ export function LoginScreen({ redirectTo }: { redirectTo?: string }) {
         </Link>
       </div>
     </Shell>
+  );
+}
+
+export function ForgotPasswordScreen() {
+  const mutation = useForgotPassword();
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ForgotPasswordFormValues>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: { email: "" },
+  });
+
+  return (
+    <div className="noscroll flex flex-1 flex-col overflow-y-auto md:flex-none">
+      <div className="flex flex-1 flex-col justify-center px-6.5 py-8 md:rounded-3xl md:border md:border-line-soft md:bg-surface md:px-10 md:py-10 md:shadow-card">
+        <Logo />
+        <div className="animate-fade-up">
+          <p className="mb-5.5 font-sans text-sm text-muted-foreground">
+            Digite seu e-mail e enviaremos um link para redefinir sua senha.
+          </p>
+          {successMessage ? (
+            <div className="rounded-xl border border-line-soft bg-card px-5 py-4 text-center">
+              <p className="font-sans text-sm text-foreground">{successMessage}</p>
+              <Link
+                href="/login"
+                className="mt-4 inline-block font-sans text-[0.84rem] font-semibold text-primary"
+              >
+                Voltar ao login
+              </Link>
+            </div>
+          ) : (
+            <form
+              onSubmit={handleSubmit((values) =>
+                mutation.mutate(values, {
+                  onSuccess: (response) => setSuccessMessage(response.message),
+                })
+              )}
+              noValidate
+            >
+              <Field label="E-mail" error={errors.email?.message}>
+                <TextField
+                  icon={Mail}
+                  type="email"
+                  placeholder="seu@email.com"
+                  autoComplete="email"
+                  invalid={!!errors.email}
+                  {...register("email")}
+                />
+              </Field>
+              <AppButton
+                type="submit"
+                full
+                size="lg"
+                className="mt-1"
+                disabled={mutation.isPending}
+              >
+                {mutation.isPending ? "Enviando..." : "Enviar link"}
+              </AppButton>
+              <div className="mt-4 text-center">
+                <Link
+                  href="/login"
+                  replace
+                  className="inline-block py-2 font-sans text-[0.84rem] font-semibold text-muted-foreground"
+                >
+                  Voltar ao{" "}
+                  <span className="text-primary">login</span>
+                </Link>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ResetPasswordScreen({ token }: { token: string | null }) {
+  const mutation = useResetPassword();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ResetPasswordFormValues>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: { newPassword: "", newPasswordConfirmation: "" },
+  });
+
+  return (
+    <div className="noscroll flex flex-1 flex-col overflow-y-auto md:flex-none">
+      <div className="flex flex-1 flex-col justify-center px-6.5 py-8 md:rounded-3xl md:border md:border-line-soft md:bg-surface md:px-10 md:py-10 md:shadow-card">
+        <Logo />
+        <div className="animate-fade-up">
+          {!token ? (
+            <div className="rounded-xl border border-line-soft bg-card px-5 py-4 text-center">
+              <p className="font-sans text-sm text-muted-foreground">
+                Link inválido ou expirado. Solicite um novo link de redefinição.
+              </p>
+              <Link
+                href="/forgot-password"
+                className="mt-4 inline-block font-sans text-[0.84rem] font-semibold text-primary"
+              >
+                Solicitar novo link
+              </Link>
+            </div>
+          ) : (
+            <>
+              <p className="mb-5.5 font-sans text-sm text-muted-foreground">
+                Escolha uma nova senha para sua conta.
+              </p>
+              <form
+                onSubmit={handleSubmit((values) =>
+                  mutation.mutate({ token, ...values })
+                )}
+                noValidate
+              >
+                <Field label="Nova senha" error={errors.newPassword?.message}>
+                  <PasswordTextField
+                    placeholder="Mín. 6 caracteres"
+                    autoComplete="new-password"
+                    invalid={!!errors.newPassword}
+                    {...register("newPassword")}
+                  />
+                </Field>
+                <Field
+                  label="Confirmar nova senha"
+                  error={errors.newPasswordConfirmation?.message}
+                >
+                  <PasswordTextField
+                    placeholder="Repita a nova senha"
+                    autoComplete="new-password"
+                    invalid={!!errors.newPasswordConfirmation}
+                    {...register("newPasswordConfirmation")}
+                  />
+                </Field>
+                <AppButton
+                  type="submit"
+                  full
+                  size="lg"
+                  className="mt-1"
+                  disabled={mutation.isPending}
+                >
+                  {mutation.isPending ? "Redefinindo..." : "Redefinir senha"}
+                </AppButton>
+              </form>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 

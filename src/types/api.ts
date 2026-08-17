@@ -73,6 +73,16 @@ export interface ChangePasswordPayload {
   newPasswordConfirmation: string;
 }
 
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+export interface ResetPasswordPayload {
+  token: string;
+  newPassword: string;
+  newPasswordConfirmation: string;
+}
+
 export interface PeladaPayload {
   name: string;
 }

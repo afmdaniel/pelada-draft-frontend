@@ -1,10 +1,13 @@
+
 {
   "openapi": "3.0.0",
   "paths": {
     "/auth/register": {
       "post": {
         "operationId": "AuthController_register",
-        "parameters": [],
+        "parameters": [
+          
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -39,7 +42,9 @@
     "/auth/login": {
       "post": {
         "operationId": "AuthController_login",
-        "parameters": [],
+        "parameters": [
+          
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -71,7 +76,9 @@
     "/auth/refresh": {
       "post": {
         "operationId": "AuthController_refresh",
-        "parameters": [],
+        "parameters": [
+          
+        ],
         "responses": {
           "200": {
             "description": "Token atualizado com sucesso.",
@@ -86,7 +93,9 @@
         },
         "security": [
           {
-            "refresh_token": []
+            "refresh_token": [
+              
+            ]
           }
         ],
         "summary": "Atualiza o token de acesso.",
@@ -98,7 +107,9 @@
     "/auth/change-password": {
       "patch": {
         "operationId": "AuthController_updatePassword",
-        "parameters": [],
+        "parameters": [
+          
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -123,7 +134,9 @@
         },
         "security": [
           {
-            "access_token": []
+            "access_token": [
+              
+            ]
           }
         ],
         "summary": "Atualiza senha do usuário.",
@@ -135,7 +148,9 @@
     "/auth/logout": {
       "post": {
         "operationId": "AuthController_logout",
-        "parameters": [],
+        "parameters": [
+          
+        ],
         "responses": {
           "200": {
             "description": "Sessão encerrada com sucesso.",
@@ -150,7 +165,9 @@
         },
         "security": [
           {
-            "refresh_token": []
+            "refresh_token": [
+              
+            ]
           }
         ],
         "summary": "Encerra sessão do usuário.",
@@ -159,10 +176,80 @@
         ]
       }
     },
+    "/auth/forgot-password": {
+      "post": {
+        "operationId": "AuthController_forgotPassword",
+        "parameters": [
+          
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Solicitação processada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForgotPasswordResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Solicita a redefinição de senha por e-mail.",
+        "tags": [
+          "Autenticação"
+        ]
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "operationId": "AuthController_resetPasswordHandler",
+        "parameters": [
+          
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Senha redefinida com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetPasswordResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Redefine a senha usando um token de redefinição.",
+        "tags": [
+          "Autenticação"
+        ]
+      }
+    },
     "/auth/me": {
       "get": {
         "operationId": "AuthController_me",
-        "parameters": [],
+        "parameters": [
+          
+        ],
         "responses": {
           "200": {
             "description": "Dados do usuário retornados com sucesso.",
@@ -177,7 +264,9 @@
         },
         "security": [
           {
-            "access_token": []
+            "access_token": [
+              
+            ]
           }
         ],
         "summary": "Retorna os dados do usuário logado",
@@ -189,7 +278,9 @@
     "/peladas": {
       "post": {
         "operationId": "PeladaController_create",
-        "parameters": [],
+        "parameters": [
+          
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -214,7 +305,9 @@
         },
         "security": [
           {
-            "access_token": []
+            "access_token": [
+              
+            ]
           }
         ],
         "summary": "Cria uma nova pelada",
@@ -224,7 +317,9 @@
       },
       "get": {
         "operationId": "PeladaController_list",
-        "parameters": [],
+        "parameters": [
+          
+        ],
         "responses": {
           "200": {
             "description": "Lista de peladas retornada com sucesso.",
@@ -239,7 +334,9 @@
         },
         "security": [
           {
-            "access_token": []
+            "access_token": [
+              
+            ]
           }
         ],
         "summary": "Lista todas as peladas do usuário logado",
@@ -278,7 +375,9 @@
         },
         "security": [
           {
-            "access_token": []
+            "access_token": [
+              
+            ]
           }
         ],
         "summary": "Obtém detalhes de uma pelada pelo ID",
@@ -322,7 +421,9 @@
         },
         "security": [
           {
-            "access_token": []
+            "access_token": [
+              
+            ]
           }
         ],
         "summary": "Atualiza o nome da pelada",
@@ -356,7 +457,9 @@
         },
         "security": [
           {
-            "access_token": []
+            "access_token": [
+              
+            ]
           }
         ],
         "summary": "Deleta uma pelada",
@@ -402,7 +505,9 @@
         },
         "security": [
           {
-            "access_token": []
+            "access_token": [
+              
+            ]
           }
         ],
         "summary": "Adiciona um jogador à pelada",
@@ -436,7 +541,9 @@
         },
         "security": [
           {
-            "access_token": []
+            "access_token": [
+              
+            ]
           }
         ],
         "summary": "Lista os jogadores da pelada",
@@ -490,7 +597,9 @@
         },
         "security": [
           {
-            "access_token": []
+            "access_token": [
+              
+            ]
           }
         ],
         "summary": "Atualiza os dados de um jogador",
@@ -532,7 +641,9 @@
         },
         "security": [
           {
-            "access_token": []
+            "access_token": [
+              
+            ]
           }
         ],
         "summary": "Remove um jogador da pelada",
@@ -578,7 +689,9 @@
         },
         "security": [
           {
-            "access_token": []
+            "access_token": [
+              
+            ]
           }
         ],
         "summary": "Realiza o sorteio de times para a pelada",
@@ -614,7 +727,9 @@
         },
         "security": [
           {
-            "access_token": []
+            "access_token": [
+              
+            ]
           }
         ],
         "summary": "Lista usuários com permissão para a pelada.",
@@ -658,7 +773,9 @@
         },
         "security": [
           {
-            "access_token": []
+            "access_token": [
+              
+            ]
           }
         ],
         "summary": "Gerencia as permissões de um usuário em uma pelada",
@@ -672,7 +789,9 @@
     "title": "API de Peladas",
     "description": "Documentação completa da API de gerenciamento de peladas, jogadores e sorteio equilibrado de times.",
     "version": "1.0",
-    "contact": {}
+    "contact": {
+      
+    }
   },
   "tags": [
     {
@@ -696,7 +815,9 @@
       "description": "Gerenciamento de permissões de usuários dentro da pelada"
     }
   ],
-  "servers": [],
+  "servers": [
+    
+  ],
   "components": {
     "securitySchemes": {
       "cookie": {
@@ -863,6 +984,79 @@
           "message": {
             "type": "string",
             "example": "Sessão encerrada com sucesso."
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "ForgotPasswordBody": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "E-mail do usuário cadastrado.",
+            "example": "usuario@email.com"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "ForgotPasswordResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Se o e-mail existir, um link de redefinição foi enviado."
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "ResetPasswordBody": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "Token de redefinição de senha recebido por e-mail.",
+            "example": "a1b2c3d4e5f6..."
+          },
+          "newPassword": {
+            "type": "string",
+            "description": "Nova senha com no mínimo 6 caracteres.",
+            "example": "novaSenhaForte123",
+            "minLength": 6
+          },
+          "newPasswordConfirmation": {
+            "type": "string",
+            "description": "Confirmação da nova senha. Deve ser idêntica ao campo newPassword.",
+            "example": "novaSenhaForte123"
+          }
+        },
+        "required": [
+          "token",
+          "newPassword",
+          "newPasswordConfirmation"
+        ]
+      },
+      "ResetPasswordResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Senha redefinida com sucesso."
           }
         },
         "required": [

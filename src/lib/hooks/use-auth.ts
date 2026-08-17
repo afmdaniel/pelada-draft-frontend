@@ -4,10 +4,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { changePassword, getMe, login, logout, register } from "@/lib/api/auth";
+import { changePassword, forgotPassword, getMe, login, logout, register, resetPassword } from "@/lib/api/auth";
 import { getApiErrorMessage, resetRefreshState } from "@/lib/api/axios";
-import type { ChangePasswordFormValues, RegisterFormValues } from "@/lib/validations/auth";
-import type { LoginPayload } from "@/types/api";
+import type {
+  ChangePasswordFormValues,
+  ForgotPasswordFormValues,
+  RegisterFormValues,
+  ResetPasswordFormValues,
+} from "@/lib/validations/auth";
+import type { LoginPayload, ResetPasswordPayload } from "@/types/api";
 
 export const authKeys = {
   me: ["auth", "me"] as const,
@@ -61,6 +66,30 @@ export function useRegister() {
 export function useChangePassword() {
   return useMutation({
     mutationFn: (payload: ChangePasswordFormValues) => changePassword(payload),
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error));
+    },
+  });
+}
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: (payload: ForgotPasswordFormValues) => forgotPassword(payload),
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error));
+    },
+  });
+}
+
+export function useResetPassword() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: (payload: ResetPasswordPayload) => resetPassword(payload),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      router.push("/login");
+    },
     onError: (error) => {
       toast.error(getApiErrorMessage(error));
     },
